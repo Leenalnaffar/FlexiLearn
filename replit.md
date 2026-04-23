@@ -4,6 +4,11 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## Artifacts
+
+- **flexilearn** (react-vite, `/`) — adaptive AI learning platform. Onboarding selects Learning Style + Neuro-Profile, then routes to a multi-agent chat. Theme provider toggles a Sensory-Safe (autism) palette and disables motion. ADHD adds focus timer + reward points; Dyslexia switches to a decoding-friendly font; Visual learners get Mermaid diagrams from the Visualizer agent.
+- **api-server** (`/api`) — Express. `/api/chat` and `/api/session-map` use OpenAI (gpt-5.4) via Replit AI Integrations. Stateless: history is sent with each request.
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

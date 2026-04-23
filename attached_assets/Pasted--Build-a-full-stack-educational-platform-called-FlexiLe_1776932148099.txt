@@ -1,0 +1,40 @@
+"Build a full-stack educational platform called FlexiLearn. The app should start with a professional landing page and transition into an AI-driven multi-agent chat experience.
+
+1. Phase 1: The Onboarding Landing Page
+Create a welcoming first page with the following:
+
+Hero Section: A big 'Welcome to FlexiLearn' heading with a subtext explaining the power of AI-coordinated learning.
+
+The Setup Section: Instead of going straight to chat, create a 'Personalize Your Experience' card.
+
+Two Selection Menus:
+
+Learning Style Dropdown: Options for Visual, Auditory, Reading/Writing, and Kinesthetic.
+
+Neuro-Profile Dropdown: Options for General/Standard, ADHD (Focus Sprint), Autism (Sensory-Safe), and Dyslexia (Decoding).
+
+'Start Learning' Button: Once clicked, it saves these preferences to the app's global state and redirects the user to the Agent Chat Interface.
+
+2. Phase 2: The Multi-Agent Chat System
+Once the user enters the chat, the Manager Agent must initialize based on the selections made:
+
+Autism Mode (Sensory-Safe) Logic: If chosen, the UI must instantly strip away bright colors and animations. Use a muted grey/blue palette. The AI Specialist must avoid metaphors and provide a 'Session Map' so the user knows the exact order of the lesson.
+
+ADHD Mode Logic: If chosen, show a 'Focus Timer' and use 'Gamified Rewards'.
+
+The Specialist Agents: Based on the 'Learning Style' selected:
+
+Kinesthetic: Launch the Protégé Agent (AI acts as a student for the user to teach).
+
+Visual: Launch the Visualizer Agent (renders Mermaid.js diagrams in the chat).
+
+Auditory/Reading: Launch the Narrator or Scrivener accordingly.
+
+3. Phase 3: Technical Requirements
+Frontend: React with Tailwind CSS. Use a 'Theme Provider' to handle the drastic UI changes between 'Standard' and 'Sensory-Safe' (Autism) modes.
+
+Backend: Node.js/Express.
+
+AI: Use OpenAI API. Ensure the system prompt for the AI includes the description of the three-tier agent system (Analyzers, Managers, Specialists) so it stays in character.
+
+Please build the Landing Page first with the dropdowns, then move to the Chat Interface and the logic for the different UI themes."

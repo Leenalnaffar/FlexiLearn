@@ -3,20 +3,21 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: FlexiLearn API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: chat
+    description: Multi-agent chat
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +25,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /chat:
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a message to the multi-agent system
+      description: Sends the user's message along with their learning preferences to receive a coordinated AI response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Chat response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+  /session-map:
+    post:
+      operationId: getSessionMap
+      tags: [chat]
+      summary: Get a structured session plan for a topic
+      description: Returns an explicit, ordered lesson outline. Used by the Sensory-Safe mode to give the user predictability.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionMapRequest"
+      responses:
+        "200":
+          description: Session map
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionMap"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +72,82 @@ components:
           type: string
       required:
         - status
-
+    LearningStyle:
+      type: string
+      enum: [visual, auditory, reading, kinesthetic]
+    NeuroProfile:
+      type: string
+      enum: [standard, adhd, autism, dyslexia]
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+      required: [role, content]
+    ChatRequest:
+      type: object
+      properties:
+        learningStyle:
+          $ref: "#/components/schemas/LearningStyle"
+        neuroProfile:
+          $ref: "#/components/schemas/NeuroProfile"
+        topic:
+          type: string
+          description: The current learning topic (optional)
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        message:
+          type: string
+      required: [learningStyle, neuroProfile, history, message]
+    ChatResponse:
+      type: object
+      properties:
+        reply:
+          type: string
+          description: The specialist agent's response, possibly containing a Mermaid code block for visual mode.
+        agent:
+          type: string
+          enum: [visualizer, narrator, scrivener, protege]
+          description: Which specialist agent answered.
+        mermaid:
+          type: string
+          description: Optional Mermaid diagram source extracted from the reply (visual mode).
+        rewardPoints:
+          type: integer
+          description: Points awarded this turn (ADHD gamification).
+      required: [reply, agent]
+    SessionMapRequest:
+      type: object
+      properties:
+        topic:
+          type: string
+        learningStyle:
+          $ref: "#/components/schemas/LearningStyle"
+        neuroProfile:
+          $ref: "#/components/schemas/NeuroProfile"
+      required: [topic, learningStyle, neuroProfile]
+    SessionMapStep:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        durationMinutes:
+          type: integer
+      required: [title, description, durationMinutes]
+    SessionMap:
+      type: object
+      properties:
+        topic:
+          type: string
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionMapStep"
+      required: [topic, steps]
