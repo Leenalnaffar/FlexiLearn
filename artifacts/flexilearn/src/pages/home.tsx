@@ -57,24 +57,34 @@ export default function Home() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
-      {/* Animated decorative orbs */}
+      {/* Animated decorative orbs - extra vibrant */}
       <MotionDiv
         initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: 0.55, scale: 1 }}
+        animate={{ opacity: 0.9, scale: 1 }}
         transition={{ duration: 1.6, ease: "easeOut" }}
-        className="absolute top-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-primary/30 blur-[120px] pointer-events-none"
+        className="absolute top-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full blur-[110px] pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(280 95% 65% / 0.85), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: 0.45, scale: 1 }}
+        animate={{ opacity: 0.85, scale: 1 }}
         transition={{ duration: 1.6, ease: "easeOut", delay: 0.15 }}
-        className="absolute bottom-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-accent/30 blur-[120px] pointer-events-none"
+        className="absolute bottom-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full blur-[110px] pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(195 95% 60% / 0.75), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.35 }}
+        animate={{ opacity: 0.7 }}
         transition={{ duration: 1.8, delay: 0.3 }}
-        className="absolute top-[30%] left-[40%] w-[35vw] h-[35vw] rounded-full bg-secondary/20 blur-[120px] pointer-events-none"
+        className="absolute top-[20%] left-[30%] w-[40vw] h-[40vw] rounded-full blur-[110px] pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(330 95% 65% / 0.7), transparent 70%)" }}
+      />
+      <MotionDiv
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
+        transition={{ duration: 1.8, delay: 0.45 }}
+        className="absolute top-[55%] right-[20%] w-[30vw] h-[30vw] rounded-full blur-[100px] pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(45 100% 60% / 0.6), transparent 70%)" }}
       />
 
       <AnimatePresence mode="wait">
@@ -91,8 +101,19 @@ export default function Home() {
               <div className="inline-flex items-center justify-center p-3.5 rounded-2xl mb-6 glass">
                 <Sparkles className="w-7 h-7 text-primary" />
               </div>
-              <h1 className="text-4xl sm:text-6xl font-bold mb-4 tracking-tight bg-gradient-to-br from-white via-white to-primary/70 bg-clip-text text-transparent">
-                Welcome to FlexiLearn
+              <h1 className="text-4xl sm:text-6xl font-extrabold mb-4 tracking-tight leading-[1.05]">
+                <span className="block text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]">
+                  Welcome to
+                </span>
+                <span
+                  className="block bg-clip-text text-transparent drop-shadow-[0_4px_24px_rgba(168,85,247,0.45)]"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(90deg, #fde68a 0%, #f472b6 30%, #c084fc 55%, #60a5fa 80%, #22d3ee 100%)",
+                  }}
+                >
+                  FlexiLearn
+                </span>
               </h1>
               <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
                 Your personalized learning companion. Tell us how you learn best, and we'll adapt to you.
