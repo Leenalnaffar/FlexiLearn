@@ -323,8 +323,14 @@ export default function Chat() {
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-4 sm:px-6 border-b border-border bg-card/30 backdrop-blur-xl z-10 shrink-0">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={handleBack}>
+            <Button
+              variant="ghost"
+              className="gap-2 rounded-xl glass px-3 h-10"
+              onClick={handleBack}
+              title="Back to home"
+            >
               <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline text-sm">Home</span>
             </Button>
 
             {/* Progress Ring */}
