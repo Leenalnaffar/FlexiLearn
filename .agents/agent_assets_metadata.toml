@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "sybQI8VH5hSFC9EuWv0IL"
+uri = "file://exports/flexilearn-source.zip"
+type = "unspecified"
+title = "FlexiLearn — full source code (zip)"
