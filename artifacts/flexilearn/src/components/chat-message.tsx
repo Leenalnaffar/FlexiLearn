@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, PlayCircle, FileText } from "lucide-react";
 import { usePreferences } from "@/hooks/use-preferences";
 import { MotionDiv } from "@/components/motion-wrapper";
-import { ChatMessageRole, ChatMessage as ApiChatMessage } from "@workspace/api-client-react";
+import { ChatMessage as ApiChatMessage } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {
@@ -15,7 +15,7 @@ interface ChatMessageProps {
 export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   const { learningStyle, neuroProfile } = usePreferences();
   const isUser = message.role === "user";
-  
+
   const isDyslexia = neuroProfile === "dyslexia";
   const isVisual = learningStyle === "visual";
   const isAuditory = learningStyle === "auditory";
@@ -26,12 +26,15 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
 
   useEffect(() => {
     if (isVisual && mermaidCode && mermaidRef.current) {
-      mermaid.initialize({ startOnLoad: false, theme: 'base' });
-      mermaid.render(`mermaid-${Math.random().toString(36).substring(2)}`, mermaidCode).then((result) => {
-        if (mermaidRef.current) {
-          mermaidRef.current.innerHTML = result.svg;
-        }
-      }).catch(console.error);
+      mermaid.initialize({ startOnLoad: false, theme: "dark" });
+      mermaid
+        .render(`mermaid-${Math.random().toString(36).substring(2)}`, mermaidCode)
+        .then((result) => {
+          if (mermaidRef.current) {
+            mermaidRef.current.innerHTML = result.svg;
+          }
+        })
+        .catch(console.error);
     }
   }, [mermaidCode, isVisual]);
 
@@ -42,7 +45,7 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
       setIsPlaying(false);
       return;
     }
-    
+
     const utterance = new SpeechSynthesisUtterance(message.content);
     utterance.onend = () => setIsPlaying(false);
     setIsPlaying(true);
@@ -63,19 +66,16 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
     <MotionDiv
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "flex w-full mb-6",
-        isUser ? "justify-end" : "justify-start"
-      )}
+      className={cn("flex w-full mb-6", isUser ? "justify-end" : "justify-start")}
     >
-      <div className={cn(
-        "max-w-[85%] sm:max-w-[75%] rounded-3xl px-6 py-4 relative group",
-        isUser 
-          ? "bg-primary text-primary-foreground rounded-tr-sm" 
-          : "bg-card border border-border rounded-tl-sm text-card-foreground shadow-sm",
-        isDyslexia && !isUser && "dyslexia-mode",
-        isReading && !isUser && "font-serif prose-p:leading-relaxed text-lg"
-      )}>
+      <div
+        className={cn(
+          "message-bubble max-w-[88%] sm:max-w-[78%] rounded-3xl px-6 py-4 relative group",
+          isUser ? "rounded-tr-sm glass-bubble-user" : "rounded-tl-sm glass-bubble-bot",
+          isDyslexia && !isUser && "dyslexia-mode",
+          isReading && !isUser && "font-serif text-[1.05rem] leading-relaxed",
+        )}
+      >
         {!isUser && isAuditory && (
           <Button
             variant="secondary"
@@ -92,23 +92,17 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
             {message.attachments.map((a, i) => {
               const isImg = a.mimeType.startsWith("image/");
               return isImg ? (
-                <a
-                  key={i}
-                  href={a.dataUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block"
-                >
+                <a key={i} href={a.dataUrl} target="_blank" rel="noreferrer" className="block">
                   <img
                     src={a.dataUrl}
                     alt={a.name}
-                    className="max-h-48 max-w-full rounded-xl border border-primary-foreground/20 object-cover"
+                    className="max-h-48 max-w-full rounded-xl border border-white/20 object-cover"
                   />
                 </a>
               ) : (
                 <div
                   key={i}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary-foreground/10 border border-primary-foreground/20 text-xs"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 border border-white/20 text-xs"
                 >
                   <FileText className="w-4 h-4 shrink-0" />
                   <span className="truncate max-w-[200px]">{a.name}</span>
@@ -118,12 +112,10 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           </div>
         )}
 
-        <div className="whitespace-pre-wrap leading-relaxed">
-          {message.content}
-        </div>
+        <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
 
         {isVisual && mermaidCode && !isUser && (
-          <div className="mt-4 p-4 bg-muted/50 rounded-xl overflow-hidden flex justify-center">
+          <div className="mt-4 p-4 bg-black/30 border border-white/10 rounded-xl overflow-hidden flex justify-center backdrop-blur-sm">
             <div ref={mermaidRef} className="max-w-full overflow-x-auto" />
           </div>
         )}
