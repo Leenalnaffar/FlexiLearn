@@ -19,7 +19,21 @@ TIER 3 — SPECIALIST AGENTS (you are one of these):
   - Scrivener: teaches through clear written passages, structured paragraphs, well-organized notes.
   - Protégé: YOU are the student. The user is the teacher. Ask them to explain a topic, ask clarifying questions, occasionally make plausible mistakes for them to correct (Feynman technique).
 
-You always stay in character for your assigned specialist. Do not break the fourth wall about being an AI unless asked directly.`;
+You always stay in character for your assigned specialist. Do not break the fourth wall about being an AI unless asked directly.
+
+=== USER-FACING OUTPUT BOUNDARY (critical) ===
+The student sees EVERY character you produce. There is no separate scratchpad.
+Therefore your output must be ONLY the final, polished, in-character lesson content.
+
+You MUST NOT include any of the following in your reply:
+- Planning notes, outlines of what you are about to write, or "let me think" preambles.
+- Phrases like: "Plan:", "Steps:", "Step 1 / Step 2 (as a plan)", "First, I will…", "Here is my approach…", "Let me…", "I will now…", "Outline:", "Draft:", "Thinking:", "Reasoning:", "Internal:", "As an AI…".
+- Meta-commentary about which specialist you are, which mode you are in, or that you are about to produce a diagram (just produce it).
+- Restating the user's question back to them before answering.
+- A markdown outline followed by the same content again.
+- Any duplication of content you are also rendering as a diagram or artifact.
+
+Begin your reply directly with the lesson content. No preface. No closing meta-commentary.`;
 
 function specialistFor(
   learningStyle: "visual" | "auditory" | "reading" | "kinesthetic",
@@ -41,7 +55,7 @@ function specialistInstructions(
 ): string {
   switch (agent) {
     case "visualizer":
-      return `You are the VISUALIZER specialist. Whenever a concept can be diagrammed (and most can), include a Mermaid diagram in a \`\`\`mermaid code block. Prefer flowcharts, sequence diagrams, or mindmaps. Keep prose around the diagram brief — let the picture do the heavy lifting.`;
+      return `You are the VISUALIZER specialist. Whenever a concept can be diagrammed (and most can), include a Mermaid diagram in a \`\`\`mermaid code block. Prefer flowcharts, sequence diagrams, or mindmaps. Keep prose around the diagram extremely brief — at most one short caption sentence before and one after. The diagram is the lesson; do NOT also describe the diagram in prose.`;
     case "narrator":
       return `You are the NARRATOR specialist. Speak in a warm, rhythmic, conversational style as though you were reading aloud. Use short sentences and natural cadence. No bullet lists or markdown — flowing prose only.`;
     case "scrivener":
@@ -67,6 +81,39 @@ function neuroAddon(neuro: "standard" | "adhd" | "autism" | "dyslexia"): string 
 function extractMermaid(text: string): string | undefined {
   const m = text.match(/```mermaid\s*([\s\S]*?)```/);
   return m ? m[1].trim() : undefined;
+}
+
+/**
+ * Strip "internal thinking" / planning patterns and any mermaid code block
+ * from the user-facing reply. The diagram is rendered separately as an
+ * artifact, so it must not also appear as raw code in the chat bubble.
+ */
+function sanitizeReply(raw: string, mermaidExtracted: boolean): string {
+  let text = raw;
+
+  // Remove the mermaid block(s) from the visible text — they are rendered separately.
+  if (mermaidExtracted) {
+    text = text.replace(/```mermaid\s*[\s\S]*?```/g, "").trim();
+  }
+
+  // Strip common "thinking" / planning preamble blocks.
+  const metaPatterns: RegExp[] = [
+    /^(?:\s*\**\s*)?(?:thinking|reasoning|internal|scratch ?pad|plan|planning|outline|draft|approach|steps?)\s*[:\-—]\s*[\s\S]*?(?:\n\s*\n|$)/i,
+    /^(?:\s*[-*]\s*)?(?:let me (?:think|plan|outline|draft)|first[, ]+i(?:'?ll| will)|i(?:'?ll| will) (?:now |first |start by )?(?:plan|outline|think|draft|approach|consider))[^\n]*\n+/i,
+    /^\s*here(?:'s| is) (?:my|the) (?:plan|approach|outline|thinking)[^\n]*\n+/i,
+    /^\s*as an ai[^\n]*\n+/i,
+  ];
+  for (const re of metaPatterns) {
+    text = text.replace(re, "");
+  }
+
+  // Strip a leading "Step N: …" planning ladder if it precedes real content.
+  text = text.replace(/^(?:\s*step\s*\d+\s*[:\-].*\n){2,}\s*\n/i, "");
+
+  // Collapse 3+ blank lines.
+  text = text.replace(/\n{3,}/g, "\n\n").trim();
+
+  return text;
 }
 
 router.post("/chat", async (req, res, next) => {
@@ -146,8 +193,9 @@ router.post("/chat", async (req, res, next) => {
       ] as any,
     });
 
-    const reply = completion.choices[0]?.message?.content?.trim() ?? "";
-    const mermaid = agent === "visualizer" ? extractMermaid(reply) : undefined;
+    const rawReply = completion.choices[0]?.message?.content?.trim() ?? "";
+    const mermaid = agent === "visualizer" ? extractMermaid(rawReply) : undefined;
+    const reply = sanitizeReply(rawReply, Boolean(mermaid));
     const rewardPoints = body.neuroProfile === "adhd" ? 10 : undefined;
 
     const data = SendChatMessageResponse.parse({

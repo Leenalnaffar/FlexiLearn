@@ -62,10 +62,13 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
     URL.revokeObjectURL(url);
   };
 
+  const isAutism = neuroProfile === "autism";
+
   return (
     <MotionDiv
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={isAutism ? false : { opacity: 0, y: 10 }}
+      animate={isAutism ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      transition={isAutism ? { duration: 0 } : undefined}
       className={cn("flex w-full mb-6", isUser ? "justify-end" : "justify-start")}
     >
       <div
