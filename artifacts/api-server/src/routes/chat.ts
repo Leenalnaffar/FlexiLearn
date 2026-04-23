@@ -33,7 +33,25 @@ You MUST NOT include any of the following in your reply:
 - A markdown outline followed by the same content again.
 - Any duplication of content you are also rendering as a diagram or artifact.
 
-Begin your reply directly with the lesson content. No preface. No closing meta-commentary.`;
+Begin your reply directly with the lesson content. No preface. No closing meta-commentary.
+
+=== FORMATTING RULES (strict) ===
+You are a direct educational specialist. Use plain text only.
+- Do NOT use Markdown bolding or italics. Never wrap text in **double asterisks**, *single asterisks*, __double underscores__, or _single underscores_ for emphasis.
+- Do NOT use markdown headings with # symbols. If a heading is needed, write it as a short plain-text line on its own (e.g. "Definition") followed by a blank line.
+- Bullet points are allowed ONLY for true lists, written with "- " at the start of the line. Never use "* " or "• ".
+- Do NOT use horizontal rules (---), block quotes (>), or HTML tags.
+- Code (other than the special \`\`\`mermaid block when you are the Visualizer) should be written inline only when necessary, with single backticks.
+
+=== TONE RULES (no permission-seeking) ===
+The Manager Agent has already chosen the right specialist and mode for this learner. You already know what they need. Therefore:
+- Just deliver the most relevant educational content immediately.
+- Do NOT ask the user for permission to show more. Banned phrases include but are not limited to:
+  "If you want, I can…", "Would you like…", "Want me to…", "Should I…", "Let me know if…",
+  "Do you want…", "I can also…", "Happy to…", "If that helps…", "Tell me if you'd like…",
+  "Shall I…", "Just say the word…".
+- Use short, declarative sentences. Prefer "Here is a simplified summary." over "I can give you a simplified summary if you want."
+- It is OK to end with ONE direct, in-character follow-up question that drives the lesson forward (e.g. the Protégé asking the user to teach a sub-point). It is NOT OK to end with an offer of optional extras.`;
 
 function specialistFor(
   learningStyle: "visual" | "auditory" | "reading" | "kinesthetic",
@@ -110,8 +128,54 @@ function sanitizeReply(raw: string, mermaidExtracted: boolean): string {
   // Strip a leading "Step N: …" planning ladder if it precedes real content.
   text = text.replace(/^(?:\s*step\s*\d+\s*[:\-].*\n){2,}\s*\n/i, "");
 
-  // Collapse 3+ blank lines.
-  text = text.replace(/\n{3,}/g, "\n\n").trim();
+  // ---- Strip Markdown emphasis / formatting ----
+  // Bold/italic with ** ** or __ __  (keep inner text)
+  text = text.replace(/\*\*\*([^*\n]+?)\*\*\*/g, "$1");
+  text = text.replace(/\*\*([^*\n]+?)\*\*/g, "$1");
+  text = text.replace(/___([^_\n]+?)___/g, "$1");
+  text = text.replace(/__([^_\n]+?)__/g, "$1");
+  // Single * ... *  and  _ ... _  emphasis (avoid touching list markers and snake_case)
+  text = text.replace(/(^|[\s(\[{>])\*(?!\s)([^*\n]+?)(?<!\s)\*(?=$|[\s.,;:!?)\]}])/g, "$1$2");
+  text = text.replace(/(^|[\s(\[{>])_(?!\s)([^_\n]+?)(?<!\s)_(?=$|[\s.,;:!?)\]}])/g, "$1$2");
+  // Markdown headings (#, ##, etc.) → plain text line
+  text = text.replace(/^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/gm, "$1");
+  // Bullet markers normalized to "- "
+  text = text.replace(/^\s*[•*]\s+/gm, "- ");
+  // Horizontal rules
+  text = text.replace(/^\s*-{3,}\s*$/gm, "");
+  // Block-quote markers
+  text = text.replace(/^\s*>\s?/gm, "");
+
+  // ---- Strip permission-seeking trailing offers ----
+  // Remove sentences that start with classic permission-seeking patterns.
+  const permissionRe = new RegExp(
+    [
+      "(?:^|(?<=[\\.!?]\\s))",
+      "(?:if you (?:want|like|'d like|would like)|",
+      "would you like|",
+      "want me to|",
+      "do you want|",
+      "shall i|should i|",
+      "let me know if|",
+      "tell me if you(?:'d| would) like|",
+      "i can (?:also |as well )?(?:provide|give|show|create|make|offer|prepare|generate)|",
+      "happy to|",
+      "feel free to (?:ask|let me know)|",
+      "just (?:say the word|let me know|ask)",
+      ")",
+      "[^\\.!?\\n]*[\\.!?\\n]?",
+    ].join(""),
+    "gi",
+  );
+  text = text.replace(permissionRe, "");
+
+  // Collapse 3+ blank lines and trim trailing whitespace per line.
+  text = text
+    .split("\n")
+    .map((l) => l.replace(/[ \t]+$/g, ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
   return text;
 }
