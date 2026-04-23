@@ -78,6 +78,17 @@ components:
     NeuroProfile:
       type: string
       enum: [standard, adhd, autism, dyslexia]
+    ChatAttachment:
+      type: object
+      properties:
+        name:
+          type: string
+        mimeType:
+          type: string
+        dataUrl:
+          type: string
+          description: Data URL (data:<mime>;base64,...) of the attached file.
+      required: [name, mimeType, dataUrl]
     ChatMessage:
       type: object
       properties:
@@ -86,6 +97,10 @@ components:
           enum: [user, assistant]
         content:
           type: string
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatAttachment"
       required: [role, content]
     ChatRequest:
       type: object
@@ -103,6 +118,10 @@ components:
             $ref: "#/components/schemas/ChatMessage"
         message:
           type: string
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatAttachment"
       required: [learningStyle, neuroProfile, history, message]
     ChatResponse:
       type: object

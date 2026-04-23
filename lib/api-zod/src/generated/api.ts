@@ -29,9 +29,33 @@ export const SendChatMessageBody = zod.object({
     zod.object({
       role: zod.enum(["user", "assistant"]),
       content: zod.string(),
+      attachments: zod
+        .array(
+          zod.object({
+            name: zod.string(),
+            mimeType: zod.string(),
+            dataUrl: zod
+              .string()
+              .describe(
+                "Data URL (data:<mime>;base64,...) of the attached file.",
+              ),
+          }),
+        )
+        .optional(),
     }),
   ),
   message: zod.string(),
+  attachments: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        mimeType: zod.string(),
+        dataUrl: zod
+          .string()
+          .describe("Data URL (data:<mime>;base64,...) of the attached file."),
+      }),
+    )
+    .optional(),
 });
 
 export const SendChatMessageResponse = zod.object({

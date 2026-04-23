@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { usePreferences } from "@/hooks/use-preferences";
-import { useSendChatMessage, useGetSessionMap, ChatMessage as ApiChatMessage, ChatResponseAgent } from "@workspace/api-client-react";
+import { useSendChatMessage, useGetSessionMap, ChatMessage as ApiChatMessage, ChatAttachment, ChatResponseAgent } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowUp, Sparkles, Map as MapIcon, GraduationCap, Medal, ArrowLeft } from "lucide-react";
+import { ArrowUp, Sparkles, Map as MapIcon, GraduationCap, Medal, ArrowLeft, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
 import { FocusTimer } from "@/components/focus-timer";
 import { ChatMessage } from "@/components/chat-message";
 import { MotionDiv } from "@/components/motion-wrapper";
@@ -17,12 +17,15 @@ export default function Chat() {
   
   const [history, setHistory] = useState<ApiChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
   const [points, setPoints] = useState(0);
   const [activeAgent, setActiveAgent] = useState<ChatResponseAgent | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [mermaids, setMermaids] = useState<Record<number, string>>({});
-  
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sendMessage = useSendChatMessage();
   const getSessionMap = useGetSessionMap();
@@ -50,14 +53,63 @@ export default function Chat() {
     }
   }, [history, sendMessage.isPending]);
 
-  const handleSend = () => {
-    if (!input.trim() || sendMessage.isPending) return;
-    if (!learningStyle || !neuroProfile) return;
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
 
-    const userMsg: ApiChatMessage = { role: "user", content: input.trim() };
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
+    const files = Array.from(e.target.files ?? []);
+    if (e.target) e.target.value = "";
+    const next: ChatAttachment[] = [];
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        setUploadError(`${file.name} is larger than 10MB.`);
+        continue;
+      }
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        next.push({
+          name: file.name,
+          mimeType: file.type || "application/octet-stream",
+          dataUrl,
+        });
+      } catch {
+        setUploadError(`Could not read ${file.name}.`);
+      }
+    }
+    if (next.length) setPendingAttachments((prev) => [...prev, ...next]);
+  };
+
+  const removeAttachment = (idx: number) =>
+    setPendingAttachments((prev) => prev.filter((_, i) => i !== idx));
+
+  const handleSend = () => {
+    if (sendMessage.isPending) return;
+    if (!learningStyle || !neuroProfile) return;
+    const trimmed = input.trim();
+    if (!trimmed && pendingAttachments.length === 0) return;
+
+    const messageText =
+      trimmed ||
+      (pendingAttachments.length === 1
+        ? `Please look at this ${pendingAttachments[0].mimeType.startsWith("image/") ? "image" : "file"}.`
+        : "Please look at these attachments.");
+
+    const attachmentsForMsg = pendingAttachments.length ? pendingAttachments : undefined;
+    const userMsg: ApiChatMessage = {
+      role: "user",
+      content: messageText,
+      ...(attachmentsForMsg ? { attachments: attachmentsForMsg } : {}),
+    };
     const currentHistory = [...history, userMsg];
     setHistory(currentHistory);
     setInput("");
+    setPendingAttachments([]);
 
     sendMessage.mutate({
       data: {
@@ -65,7 +117,8 @@ export default function Chat() {
         neuroProfile,
         topic,
         history,
-        message: userMsg.content
+        message: messageText,
+        ...(attachmentsForMsg ? { attachments: attachmentsForMsg } : {}),
       }
     }, {
       onSuccess: (data) => {
@@ -234,26 +287,90 @@ export default function Chat() {
 
         {/* Input Area */}
         <div className="p-4 sm:p-6 bg-background border-t border-border shrink-0">
-          <div className="max-w-3xl mx-auto relative flex items-center">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={isKinesthetic ? "Teach your student..." : "Type your message..."}
-              className="h-14 pr-14 rounded-2xl bg-card border-border shadow-sm text-base placeholder:text-muted-foreground"
-              disabled={sendMessage.isPending}
-            />
-            <Button 
-              size="icon"
-              className="absolute right-2 w-10 h-10 rounded-xl"
-              disabled={!input.trim() || sendMessage.isPending}
-              onClick={handleSend}
-            >
-              <ArrowUp className="w-5 h-5" />
-            </Button>
+          <div className="max-w-3xl mx-auto">
+            {pendingAttachments.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {pendingAttachments.map((a, idx) => {
+                  const isImage = a.mimeType.startsWith("image/");
+                  return (
+                    <div
+                      key={idx}
+                      className="group relative flex items-center gap-2 pl-2 pr-8 py-2 bg-card border border-border rounded-xl text-xs"
+                    >
+                      {isImage ? (
+                        <img
+                          src={a.dataUrl}
+                          alt={a.name}
+                          className="w-10 h-10 object-cover rounded-md"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex flex-col max-w-[140px]">
+                        <span className="truncate font-medium text-foreground">{a.name}</span>
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          {isImage ? <ImageIcon className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                          {a.mimeType || "file"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${a.name}`}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center"
+                        onClick={() => removeAttachment(idx)}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {uploadError && (
+              <div className="mb-2 text-xs text-destructive">{uploadError}</div>
+            )}
+            <div className="relative flex items-center">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,.txt,.md,.csv,.json,.html,.js,.ts,.tsx,.jsx,.css,.py,.java,.c,.cpp,.go,.rb,.rs,.yaml,.yml,.xml,.log"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute left-2 w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={sendMessage.isPending}
+                aria-label="Attach files or images"
+              >
+                <Paperclip className="w-5 h-5" />
+              </Button>
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={isKinesthetic ? "Teach your student..." : "Type your message..."}
+                className="h-14 pl-14 pr-14 rounded-2xl bg-card border-border shadow-sm text-base placeholder:text-muted-foreground"
+                disabled={sendMessage.isPending}
+              />
+              <Button
+                size="icon"
+                className="absolute right-2 w-10 h-10 rounded-xl"
+                disabled={(!input.trim() && pendingAttachments.length === 0) || sendMessage.isPending}
+                onClick={handleSend}
+              >
+                <ArrowUp className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
           <div className="max-w-3xl mx-auto text-center mt-2">
-            <p className="text-[10px] text-muted-foreground">FlexiLearn AI is adapting to your {learningStyle} style.</p>
+            <p className="text-[10px] text-muted-foreground">FlexiLearn AI is adapting to your {learningStyle} style. Attach images or text files for richer lessons.</p>
           </div>
         </div>
       </div>

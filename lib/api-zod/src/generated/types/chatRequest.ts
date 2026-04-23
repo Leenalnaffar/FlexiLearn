@@ -5,6 +5,7 @@
  * FlexiLearn API
  * OpenAPI spec version: 0.1.0
  */
+import type { ChatAttachment } from "./chatAttachment";
 import type { ChatMessage } from "./chatMessage";
 import type { LearningStyle } from "./learningStyle";
 import type { NeuroProfile } from "./neuroProfile";
@@ -16,4 +17,5 @@ export interface ChatRequest {
   topic?: string;
   history: ChatMessage[];
   message: string;
+  attachments?: ChatAttachment[];
 }

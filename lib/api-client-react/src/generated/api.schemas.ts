@@ -27,6 +27,13 @@ export const NeuroProfile = {
   dyslexia: "dyslexia",
 } as const;
 
+export interface ChatAttachment {
+  name: string;
+  mimeType: string;
+  /** Data URL (data:<mime>;base64,...) of the attached file. */
+  dataUrl: string;
+}
+
 export type ChatMessageRole =
   (typeof ChatMessageRole)[keyof typeof ChatMessageRole];
 
@@ -38,6 +45,7 @@ export const ChatMessageRole = {
 export interface ChatMessage {
   role: ChatMessageRole;
   content: string;
+  attachments?: ChatAttachment[];
 }
 
 export interface ChatRequest {
@@ -47,6 +55,7 @@ export interface ChatRequest {
   topic?: string;
   history: ChatMessage[];
   message: string;
+  attachments?: ChatAttachment[];
 }
 
 /**

@@ -81,17 +81,69 @@ router.post("/chat", async (req, res, next) => {
       neuroAddon(body.neuroProfile) +
       (body.topic ? `\n\nCURRENT TOPIC: ${body.topic}` : "");
 
+    type Attachment = { name: string; mimeType: string; dataUrl: string };
+
+    const buildUserContent = (
+      text: string,
+      attachments: Attachment[] | undefined,
+    ) => {
+      if (!attachments || attachments.length === 0) return text;
+      const parts: Array<
+        | { type: "text"; text: string }
+        | { type: "image_url"; image_url: { url: string } }
+      > = [];
+      const textParts: string[] = [text];
+      for (const a of attachments) {
+        if (a.mimeType.startsWith("image/")) {
+          parts.push({ type: "image_url", image_url: { url: a.dataUrl } });
+        } else {
+          // For non-image files, decode the base64 payload as text and inline it.
+          try {
+            const b64 = a.dataUrl.split(",")[1] ?? "";
+            const decoded = Buffer.from(b64, "base64").toString("utf8");
+            const truncated =
+              decoded.length > 20000
+                ? decoded.slice(0, 20000) + "\n...(truncated)"
+                : decoded;
+            textParts.push(
+              `\n\n[Attached file: ${a.name} (${a.mimeType})]\n${truncated}`,
+            );
+          } catch {
+            textParts.push(`\n\n[Attached file: ${a.name} (${a.mimeType}) — could not be read as text]`);
+          }
+        }
+      }
+      parts.unshift({ type: "text", text: textParts.join("") });
+      return parts;
+    };
+
+    const historyMessages = body.history.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content:
+        m.role === "user"
+          ? buildUserContent(m.content, m.attachments as Attachment[] | undefined)
+          : m.content,
+    })) as Array<{
+      role: "user" | "assistant";
+      content: string | Array<{ type: string; [k: string]: unknown }>;
+    }>;
+
     const completion = await openai.chat.completions.create({
       model: "gpt-5.4",
       max_completion_tokens: 8192,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messages: [
         { role: "system", content: system },
-        ...body.history.map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        })),
-        { role: "user", content: body.message },
-      ],
+        ...historyMessages,
+        {
+          role: "user",
+          content: buildUserContent(
+            body.message,
+            body.attachments as Attachment[] | undefined,
+          ),
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ] as any,
     });
 
     const reply = completion.choices[0]?.message?.content?.trim() ?? "";

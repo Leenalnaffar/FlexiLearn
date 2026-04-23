@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 import { Button } from "@/components/ui/button";
-import { Download, PlayCircle } from "lucide-react";
+import { Download, PlayCircle, FileText } from "lucide-react";
 import { usePreferences } from "@/hooks/use-preferences";
 import { MotionDiv } from "@/components/motion-wrapper";
 import { ChatMessageRole, ChatMessage as ApiChatMessage } from "@workspace/api-client-react";
@@ -85,6 +85,37 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           >
             <PlayCircle className={cn("w-5 h-5", isPlaying && "text-primary animate-pulse")} />
           </Button>
+        )}
+
+        {isUser && message.attachments && message.attachments.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {message.attachments.map((a, i) => {
+              const isImg = a.mimeType.startsWith("image/");
+              return isImg ? (
+                <a
+                  key={i}
+                  href={a.dataUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block"
+                >
+                  <img
+                    src={a.dataUrl}
+                    alt={a.name}
+                    className="max-h-48 max-w-full rounded-xl border border-primary-foreground/20 object-cover"
+                  />
+                </a>
+              ) : (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary-foreground/10 border border-primary-foreground/20 text-xs"
+                >
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span className="truncate max-w-[200px]">{a.name}</span>
+                </div>
+              );
+            })}
+          </div>
         )}
 
         <div className="whitespace-pre-wrap leading-relaxed">

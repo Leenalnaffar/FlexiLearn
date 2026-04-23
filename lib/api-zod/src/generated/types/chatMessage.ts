@@ -5,9 +5,11 @@
  * FlexiLearn API
  * OpenAPI spec version: 0.1.0
  */
+import type { ChatAttachment } from "./chatAttachment";
 import type { ChatMessageRole } from "./chatMessageRole";
 
 export interface ChatMessage {
   role: ChatMessageRole;
   content: string;
+  attachments?: ChatAttachment[];
 }
