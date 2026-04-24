@@ -18,10 +18,6 @@ export const HealthCheckResponse = zod.object({
  * Sends the user's message along with their learning preferences to receive a coordinated AI response.
  * @summary Send a message to the multi-agent system
  */
-export const sendChatMessageBodyLastFeedbackUnderstandingMax = 5;
-
-export const sendChatMessageBodyLastFeedbackEffectivenessMax = 5;
-
 export const SendChatMessageBody = zod.object({
   learningStyle: zod.enum(["visual", "auditory", "reading", "kinesthetic"]),
   neuroProfile: zod.enum(["standard", "adhd", "autism", "dyslexia"]),
@@ -60,21 +56,6 @@ export const SendChatMessageBody = zod.object({
       }),
     )
     .optional(),
-  lastFeedback: zod
-    .object({
-      understanding: zod
-        .number()
-        .min(1)
-        .max(sendChatMessageBodyLastFeedbackUnderstandingMax),
-      effectiveness: zod
-        .number()
-        .min(1)
-        .max(sendChatMessageBodyLastFeedbackEffectivenessMax),
-    })
-    .optional()
-    .describe(
-      "Most recent rating the student gave the session. Used by the AI to self-correct teaching strategy.",
-    ),
 });
 
 export const SendChatMessageResponse = zod.object({
@@ -96,18 +77,6 @@ export const SendChatMessageResponse = zod.object({
     .number()
     .optional()
     .describe("Points awarded this turn (ADHD gamification)."),
-  resources: zod
-    .array(
-      zod.object({
-        kind: zod.enum(["video", "podcast"]),
-        label: zod.string(),
-        url: zod.string(),
-      }),
-    )
-    .optional()
-    .describe(
-      "External multimodal resources (YouTube videos for visual, Spotify\/Apple podcasts for auditory).",
-    ),
 });
 
 /**

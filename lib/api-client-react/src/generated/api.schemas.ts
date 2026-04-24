@@ -48,22 +48,6 @@ export interface ChatMessage {
   attachments?: ChatAttachment[];
 }
 
-/**
- * Most recent rating the student gave the session. Used by the AI to self-correct teaching strategy.
- */
-export interface SessionFeedback {
-  /**
-   * @minimum 1
-   * @maximum 5
-   */
-  understanding: number;
-  /**
-   * @minimum 1
-   * @maximum 5
-   */
-  effectiveness: number;
-}
-
 export interface ChatRequest {
   learningStyle: LearningStyle;
   neuroProfile: NeuroProfile;
@@ -72,21 +56,6 @@ export interface ChatRequest {
   history: ChatMessage[];
   message: string;
   attachments?: ChatAttachment[];
-  lastFeedback?: SessionFeedback;
-}
-
-export type ExternalResourceKind =
-  (typeof ExternalResourceKind)[keyof typeof ExternalResourceKind];
-
-export const ExternalResourceKind = {
-  video: "video",
-  podcast: "podcast",
-} as const;
-
-export interface ExternalResource {
-  kind: ExternalResourceKind;
-  label: string;
-  url: string;
 }
 
 /**
@@ -111,8 +80,6 @@ export interface ChatResponse {
   mermaid?: string;
   /** Points awarded this turn (ADHD gamification). */
   rewardPoints?: number;
-  /** External multimodal resources (YouTube videos for visual, Spotify/Apple podcasts for auditory). */
-  resources?: ExternalResource[];
 }
 
 export interface SessionMapRequest {
