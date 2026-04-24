@@ -51,6 +51,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("learningStyle");
     localStorage.removeItem("neuroProfile");
     localStorage.removeItem("topic");
+    // Also clear persisted chat session so the next launch starts fresh.
+    localStorage.removeItem("flexilearn:chat:state:v1");
   };
 
   const isSensorySafe = neuroProfile === "autism";

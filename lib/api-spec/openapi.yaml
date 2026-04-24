@@ -122,7 +122,33 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ChatAttachment"
+        lastFeedback:
+          $ref: "#/components/schemas/SessionFeedback"
       required: [learningStyle, neuroProfile, history, message]
+    SessionFeedback:
+      type: object
+      description: Most recent rating the student gave the session. Used by the AI to self-correct teaching strategy.
+      properties:
+        understanding:
+          type: integer
+          minimum: 1
+          maximum: 5
+        effectiveness:
+          type: integer
+          minimum: 1
+          maximum: 5
+      required: [understanding, effectiveness]
+    ExternalResource:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [video, podcast]
+        label:
+          type: string
+        url:
+          type: string
+      required: [kind, label, url]
     ChatResponse:
       type: object
       properties:
@@ -139,6 +165,11 @@ components:
         rewardPoints:
           type: integer
           description: Points awarded this turn (ADHD gamification).
+        resources:
+          type: array
+          description: External multimodal resources (YouTube videos for visual, Spotify/Apple podcasts for auditory).
+          items:
+            $ref: "#/components/schemas/ExternalResource"
       required: [reply, agent]
     SessionMapRequest:
       type: object

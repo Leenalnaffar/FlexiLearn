@@ -96,6 +96,72 @@ function neuroAddon(neuro: "standard" | "adhd" | "autism" | "dyslexia"): string 
   }
 }
 
+/**
+ * Self-correction addendum: read the last student feedback and tell the AI
+ * how to pivot strategy WITHIN the current learning style.
+ */
+function feedbackAddon(
+  learningStyle: "visual" | "auditory" | "reading" | "kinesthetic",
+  feedback: { understanding: number; effectiveness: number } | undefined,
+): string {
+  if (!feedback) return "";
+  const avg = (feedback.understanding + feedback.effectiveness) / 2;
+  if (avg < 3) {
+    const styleHint =
+      learningStyle === "visual"
+        ? "Pair the diagram with a one-sentence plain-text breakdown of the most confusing node."
+        : learningStyle === "auditory"
+          ? "Switch to simpler vocabulary, shorter sentences, and add one verbal analogy."
+          : learningStyle === "reading"
+            ? "Switch to shorter paragraphs, define every term in plain language on first use, and use a small bulleted summary."
+            : "Ask only ONE small, easier sub-question at a time and rephrase if the user pauses.";
+    return `\n\nSELF-CORRECTION (recent feedback was low — understanding=${feedback.understanding}/5, effectiveness=${feedback.effectiveness}/5): ${styleHint} Slow the pace. Re-explain the previous concept from a new angle before introducing anything new.`;
+  }
+  if (avg >= 4) {
+    return `\n\nSELF-CORRECTION (recent feedback was high — understanding=${feedback.understanding}/5, effectiveness=${feedback.effectiveness}/5): The student is in flow. Maintain current style and complexity. You may introduce one slightly more advanced sub-topic this turn.`;
+  }
+  return `\n\nSELF-CORRECTION (recent feedback was middling — understanding=${feedback.understanding}/5, effectiveness=${feedback.effectiveness}/5): Keep the current approach but add one concrete example before moving on.`;
+}
+
+/**
+ * Build adaptive external-resource suggestions for visual / auditory modes.
+ * URLs are generated server-side (search URLs, not direct content) so we never
+ * surface a hallucinated link.
+ */
+function buildResources(
+  learningStyle: "visual" | "auditory" | "reading" | "kinesthetic",
+  topic: string | undefined,
+  recentUserText: string,
+): Array<{ kind: "video" | "podcast"; label: string; url: string }> {
+  const query = (topic && topic.trim()) || recentUserText.trim().slice(0, 80);
+  if (!query) return [];
+  const q = encodeURIComponent(query);
+  if (learningStyle === "visual") {
+    return [
+      {
+        kind: "video",
+        label: `YouTube: ${query}`,
+        url: `https://www.youtube.com/results?search_query=${q}`,
+      },
+    ];
+  }
+  if (learningStyle === "auditory") {
+    return [
+      {
+        kind: "podcast",
+        label: `Spotify podcasts: ${query}`,
+        url: `https://open.spotify.com/search/${q}/podcasts`,
+      },
+      {
+        kind: "podcast",
+        label: `Apple Podcasts: ${query}`,
+        url: `https://podcasts.apple.com/search?term=${q}`,
+      },
+    ];
+  }
+  return [];
+}
+
 function extractMermaid(text: string): string | undefined {
   const m = text.match(/```mermaid\s*([\s\S]*?)```/);
   return m ? m[1].trim() : undefined;
@@ -190,6 +256,7 @@ router.post("/chat", async (req, res, next) => {
       "\n\n" +
       specialistInstructions(agent) +
       neuroAddon(body.neuroProfile) +
+      feedbackAddon(body.learningStyle, body.lastFeedback) +
       (body.topic ? `\n\nCURRENT TOPIC: ${body.topic}` : "");
 
     type Attachment = { name: string; mimeType: string; dataUrl: string };
@@ -261,12 +328,14 @@ router.post("/chat", async (req, res, next) => {
     const mermaid = agent === "visualizer" ? extractMermaid(rawReply) : undefined;
     const reply = sanitizeReply(rawReply, Boolean(mermaid));
     const rewardPoints = body.neuroProfile === "adhd" ? 10 : undefined;
+    const resources = buildResources(body.learningStyle, body.topic, body.message);
 
     const data = SendChatMessageResponse.parse({
       reply,
       agent,
       ...(mermaid ? { mermaid } : {}),
       ...(rewardPoints !== undefined ? { rewardPoints } : {}),
+      ...(resources.length ? { resources } : {}),
     });
     res.json(data);
   } catch (err) {

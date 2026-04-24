@@ -9,6 +9,7 @@ import type { ChatAttachment } from "./chatAttachment";
 import type { ChatMessage } from "./chatMessage";
 import type { LearningStyle } from "./learningStyle";
 import type { NeuroProfile } from "./neuroProfile";
+import type { SessionFeedback } from "./sessionFeedback";
 
 export interface ChatRequest {
   learningStyle: LearningStyle;
@@ -18,4 +19,5 @@ export interface ChatRequest {
   history: ChatMessage[];
   message: string;
   attachments?: ChatAttachment[];
+  lastFeedback?: SessionFeedback;
 }

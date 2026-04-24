@@ -25,7 +25,11 @@ import {
   Zap,
   CheckCircle2,
   Radio,
+  Mic,
+  MicOff,
+  Star,
 } from "lucide-react";
+import type { ResourceLink } from "@/components/chat-message";
 import { FocusTimer } from "@/components/focus-timer";
 import { ChatMessage } from "@/components/chat-message";
 import { MotionDiv } from "@/components/motion-wrapper";
@@ -34,6 +38,93 @@ import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 
 const MILESTONE_GOAL = 6; // messages to fill the progress ring
+
+const CHAT_STORAGE_KEY = "flexilearn:chat:state:v1";
+
+interface SessionFeedback {
+  understanding: number;
+  effectiveness: number;
+}
+
+interface FeedbackEntry extends SessionFeedback {
+  at: number;
+}
+
+interface PersistedChat {
+  learningStyle: string;
+  neuroProfile: string;
+  topic: string;
+  history: ApiChatMessage[];
+  points: number;
+  mermaids: Record<number, string>;
+  resourcesByIdx: Record<number, ResourceLink[]>;
+  completedMilestones: number;
+  lastFeedback: SessionFeedback | null;
+  feedbackHistory: FeedbackEntry[];
+}
+
+function RatingRow({
+  label,
+  helper,
+  value,
+  onChange,
+}: {
+  label: string;
+  helper: string;
+  value: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <label className="text-sm font-medium text-foreground">{label}</label>
+        <span className="text-xs text-muted-foreground">
+          {value > 0 ? `${value} / 5` : "Not rated"}
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground mt-0.5 mb-2">{helper}</p>
+      <div className="flex items-center gap-1.5">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            type="button"
+            aria-label={`${label} ${n} of 5`}
+            onClick={() => onChange(n)}
+            className="p-1 rounded-md hover:scale-110 transition-transform"
+          >
+            <Star
+              className={cn(
+                "w-7 h-7 transition-colors",
+                n <= value
+                  ? "text-[hsl(35_75%_50%)] fill-[hsl(35_75%_50%)]"
+                  : "text-muted-foreground/40",
+              )}
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Strip base64 dataUrls from attachments before persisting so we don't blow
+ * past the ~5MB localStorage quota. The chip metadata (name, mime) is enough
+ * to redraw the user bubble after a refresh.
+ */
+function stripAttachmentsForStorage(history: ApiChatMessage[]): ApiChatMessage[] {
+  return history.map((m) => {
+    if (!m.attachments || m.attachments.length === 0) return m;
+    return {
+      ...m,
+      attachments: m.attachments.map((a) => ({
+        name: a.name,
+        mimeType: a.mimeType,
+        dataUrl: "",
+      })),
+    };
+  });
+}
 
 export default function Chat() {
   const [, setLocation] = useLocation();
@@ -46,15 +137,189 @@ export default function Chat() {
   const [activeAgent, setActiveAgent] = useState<ChatResponseAgent | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [mermaids, setMermaids] = useState<Record<number, string>>({});
+  const [resourcesByIdx, setResourcesByIdx] = useState<Record<number, ResourceLink[]>>({});
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showChallenge, setShowChallenge] = useState(false);
   const [completedMilestones, setCompletedMilestones] = useState(0);
+
+  // Persistence + restore
+  const [hydrated, setHydrated] = useState(false);
+
+  // Feedback (Session Health)
+  const [lastFeedback, setLastFeedback] = useState<SessionFeedback | null>(null);
+  const [feedbackHistory, setFeedbackHistory] = useState<FeedbackEntry[]>([]);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [understandingDraft, setUnderstandingDraft] = useState(0);
+  const [effectivenessDraft, setEffectivenessDraft] = useState(0);
+
+  // Speech-to-text
+  const [isListening, setIsListening] = useState(false);
+  const [sttSupported, setSttSupported] = useState(true);
+  const recognitionRef = useRef<unknown>(null);
+  const inputBaselineRef = useRef<string>("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sendMessage = useSendChatMessage();
   const getSessionMap = useGetSessionMap();
+
+  // ---- Hydrate persisted chat session on mount ----
+  useEffect(() => {
+    if (!learningStyle || !neuroProfile) {
+      setHydrated(true);
+      return;
+    }
+    try {
+      const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as PersistedChat;
+        // Only restore if the saved session matches current preferences.
+        if (
+          saved.learningStyle === learningStyle &&
+          saved.neuroProfile === neuroProfile &&
+          (saved.topic ?? "") === (topic ?? "")
+        ) {
+          setHistory(saved.history ?? []);
+          setPoints(saved.points ?? 0);
+          setMermaids(saved.mermaids ?? {});
+          setResourcesByIdx(saved.resourcesByIdx ?? {});
+          setCompletedMilestones(saved.completedMilestones ?? 0);
+          setLastFeedback(saved.lastFeedback ?? null);
+          setFeedbackHistory(saved.feedbackHistory ?? []);
+        } else {
+          localStorage.removeItem(CHAT_STORAGE_KEY);
+        }
+      }
+    } catch {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+    }
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---- Persist chat state on every change (after hydration) ----
+  useEffect(() => {
+    if (!hydrated || !learningStyle || !neuroProfile) return;
+    try {
+      const payload: PersistedChat = {
+        learningStyle,
+        neuroProfile,
+        topic: topic ?? "",
+        history: stripAttachmentsForStorage(history),
+        points,
+        mermaids,
+        resourcesByIdx,
+        completedMilestones,
+        lastFeedback,
+        feedbackHistory,
+      };
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // Quota or serialization issue — fail silently rather than crash the chat.
+    }
+  }, [
+    hydrated,
+    learningStyle,
+    neuroProfile,
+    topic,
+    history,
+    points,
+    mermaids,
+    resourcesByIdx,
+    completedMilestones,
+    lastFeedback,
+    feedbackHistory,
+  ]);
+
+  // ---- Speech-to-Text setup (Web Speech API) ----
+  useEffect(() => {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => unknown;
+      webkitSpeechRecognition?: new () => unknown;
+    };
+    const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!Ctor) {
+      setSttSupported(false);
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition: any = new (Ctor as any)();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = navigator.language || "en-US";
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += transcript;
+        else interimText += transcript;
+      }
+      const baseline = inputBaselineRef.current;
+      const sep = baseline && !baseline.endsWith(" ") ? " " : "";
+      setInput((baseline + sep + finalText + interimText).trimStart());
+      if (finalText) {
+        inputBaselineRef.current = (baseline + sep + finalText).trimStart();
+      }
+    };
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    return () => {
+      try {
+        recognition.stop();
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec = recognitionRef.current as any;
+    if (!rec) return;
+    if (isListening) {
+      try {
+        rec.stop();
+      } catch {
+        // ignore
+      }
+      setIsListening(false);
+    } else {
+      inputBaselineRef.current = input;
+      try {
+        rec.start();
+        setIsListening(true);
+      } catch {
+        setIsListening(false);
+      }
+    }
+  };
+
+  const openFeedback = () => {
+    setUnderstandingDraft(lastFeedback?.understanding ?? 0);
+    setEffectivenessDraft(lastFeedback?.effectiveness ?? 0);
+    setFeedbackOpen(true);
+  };
+
+  const submitFeedback = () => {
+    if (understandingDraft < 1 || effectivenessDraft < 1) return;
+    const entry: FeedbackEntry = {
+      understanding: understandingDraft,
+      effectiveness: effectivenessDraft,
+      at: Date.now(),
+    };
+    setLastFeedback({
+      understanding: understandingDraft,
+      effectiveness: effectivenessDraft,
+    });
+    setFeedbackHistory((prev) => [...prev, entry]);
+    setFeedbackOpen(false);
+  };
 
   useEffect(() => {
     if (!learningStyle || !neuroProfile) {
@@ -186,6 +451,7 @@ export default function Chat() {
           history,
           message: messageText,
           ...(attachmentsForMsg ? { attachments: attachmentsForMsg } : {}),
+          ...(lastFeedback ? { lastFeedback } : {}),
         },
       },
       {
@@ -196,6 +462,12 @@ export default function Chat() {
 
           if (data.mermaid) {
             setMermaids((prev) => ({ ...prev, [currentHistory.length]: data.mermaid! }));
+          }
+          if (data.resources && data.resources.length > 0) {
+            setResourcesByIdx((prev) => ({
+              ...prev,
+              [currentHistory.length]: data.resources as ResourceLink[],
+            }));
           }
 
           if (neuroProfile === "adhd") {
@@ -384,6 +656,27 @@ export default function Chat() {
                 You are the teacher
               </div>
             )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-xl glass w-10 h-10 relative"
+              onClick={openFeedback}
+              title="Session Health: rate your session"
+              aria-label="Session Health"
+            >
+              <Star
+                className={cn(
+                  "w-4 h-4",
+                  lastFeedback ? "text-[hsl(35_75%_50%)] fill-[hsl(35_75%_50%)]" : "text-primary",
+                )}
+              />
+              {lastFeedback && (
+                <span className="absolute -bottom-1 -right-1 text-[9px] font-semibold px-1 rounded-full bg-card border border-border">
+                  {Math.round(((lastFeedback.understanding + lastFeedback.effectiveness) / 2) * 10) / 10}
+                </span>
+              )}
+            </Button>
             <FocusTimer />
             {neuroProfile === "adhd" && (
               <div className="flex items-center gap-2 px-3 py-1.5 glass rounded-full font-medium relative">
@@ -420,7 +713,14 @@ export default function Chat() {
                 <p className="opacity-80">Start your customized learning session.</p>
               </div>
             ) : (
-              history.map((msg, i) => <ChatMessage key={i} message={msg} mermaidCode={mermaids[i]} />)
+              history.map((msg, i) => (
+                <ChatMessage
+                  key={i}
+                  message={msg}
+                  mermaidCode={mermaids[i]}
+                  resources={resourcesByIdx[i]}
+                />
+              ))
             )}
             {sendMessage.isPending && (
               <div className="flex justify-start mb-6">
@@ -495,12 +795,47 @@ export default function Chat() {
               >
                 <FilePlus className="w-5 h-5" />
               </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "absolute left-12 w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground",
+                  isListening && "text-[hsl(13_67%_55%)]",
+                  !sttSupported && "opacity-40 cursor-not-allowed",
+                )}
+                onClick={toggleListening}
+                disabled={sendMessage.isPending || !sttSupported}
+                aria-label={isListening ? "Stop dictation" : "Start dictation"}
+                title={
+                  !sttSupported
+                    ? "Voice dictation isn't supported in this browser"
+                    : isListening
+                      ? "Stop dictation"
+                      : "Dictate with your voice"
+                }
+              >
+                {isListening ? (
+                  <MicOff className="w-5 h-5 animate-pulse" />
+                ) : (
+                  <Mic className="w-5 h-5" />
+                )}
+              </Button>
               <Input
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  inputBaselineRef.current = e.target.value;
+                }}
                 onKeyDown={handleKeyDown}
-                placeholder={isKinesthetic ? "Teach your student..." : "Type your message..."}
-                className="h-14 pl-14 pr-14 rounded-2xl bg-card border-border shadow-sm text-base placeholder:text-muted-foreground"
+                placeholder={
+                  isListening
+                    ? "Listening... speak now"
+                    : isKinesthetic
+                      ? "Teach your student..."
+                      : "Type your message..."
+                }
+                className="h-14 pl-24 pr-14 rounded-2xl bg-card border-border shadow-sm text-base placeholder:text-muted-foreground"
                 disabled={sendMessage.isPending}
               />
               <Button
@@ -520,6 +855,75 @@ export default function Chat() {
           </div>
         </div>
       </div>
+
+      {/* Session Health Feedback Modal */}
+      <AnimatePresence>
+        {feedbackOpen && (
+          <MotionDiv
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => setFeedbackOpen(false)}
+          >
+            <MotionDiv
+              initial={{ scale: 0.92, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.92, y: 16, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 240, damping: 22 }}
+              className="w-full max-w-md rounded-3xl bg-card border border-border shadow-2xl p-6"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Star className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Session Health</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Your rating reshapes how the AI teaches the next reply.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-5">
+                <RatingRow
+                  label="Understanding"
+                  helper="How well do you understand what was just taught?"
+                  value={understandingDraft}
+                  onChange={setUnderstandingDraft}
+                />
+                <RatingRow
+                  label="Effectiveness"
+                  helper="How effective was the teaching style for you?"
+                  value={effectivenessDraft}
+                  onChange={setEffectivenessDraft}
+                />
+              </div>
+
+              <div className="mt-6 flex items-center justify-end gap-2">
+                <Button variant="ghost" onClick={() => setFeedbackOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-gradient-to-br from-primary to-accent text-primary-foreground"
+                  disabled={understandingDraft < 1 || effectivenessDraft < 1}
+                  onClick={submitFeedback}
+                >
+                  Save Feedback
+                </Button>
+              </div>
+
+              {feedbackHistory.length > 0 && (
+                <p className="mt-4 text-[11px] text-muted-foreground text-center">
+                  {feedbackHistory.length} previous rating{feedbackHistory.length === 1 ? "" : "s"} saved this session.
+                </p>
+              )}
+            </MotionDiv>
+          </MotionDiv>
+        )}
+      </AnimatePresence>
 
       {/* Lightning Challenge — Breaking-news popup (ADHD only) */}
       <AnimatePresence>

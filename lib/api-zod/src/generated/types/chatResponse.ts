@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ChatResponseAgent } from "./chatResponseAgent";
+import type { ExternalResource } from "./externalResource";
 
 export interface ChatResponse {
   /** The specialist agent's response, possibly containing a Mermaid code block for visual mode. */
@@ -16,4 +17,6 @@ export interface ChatResponse {
   mermaid?: string;
   /** Points awarded this turn (ADHD gamification). */
   rewardPoints?: number;
+  /** External multimodal resources (YouTube videos for visual, Spotify/Apple podcasts for auditory). */
+  resources?: ExternalResource[];
 }
