@@ -18,7 +18,7 @@ import {
   GraduationCap,
   Medal,
   ArrowLeft,
-  Paperclip,
+  FilePlus,
   X,
   FileText,
   Image as ImageIcon,
@@ -127,6 +127,9 @@ export default function Chat() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploadError(null);
     const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) {
+      console.log("[Add Files] Selected:", files.map((f) => f.name));
+    }
     if (e.target) e.target.value = "";
     const next: ChatAttachment[] = [];
     for (const file of files) {
@@ -487,9 +490,10 @@ export default function Chat() {
                 className="absolute left-2 w-10 h-10 rounded-xl text-muted-foreground hover:text-foreground"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={sendMessage.isPending}
-                aria-label="Attach files or images"
+                aria-label="Add Files"
+                title="Add Files"
               >
-                <Paperclip className="w-5 h-5" />
+                <FilePlus className="w-5 h-5" />
               </Button>
               <Input
                 value={input}
@@ -501,7 +505,7 @@ export default function Chat() {
               />
               <Button
                 size="icon"
-                className="absolute right-2 w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_8px_24px_hsl(250_90%_50%_/_0.4)]"
+                className="absolute right-2 w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_8px_24px_hsl(208_25%_30%_/_0.25)]"
                 disabled={(!input.trim() && pendingAttachments.length === 0) || sendMessage.isPending}
                 onClick={handleSend}
               >
