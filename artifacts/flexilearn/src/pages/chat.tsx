@@ -341,7 +341,7 @@ export default function Chat() {
               title={`${userMessageCount % MILESTONE_GOAL}/${MILESTONE_GOAL} messages`}
             >
               <svg className="absolute inset-0 -rotate-90" viewBox="0 0 44 44">
-                <circle cx="22" cy="22" r={ringR} stroke="currentColor" strokeWidth="3" fill="none" className="text-white/10" />
+                <circle cx="22" cy="22" r={ringR} stroke="currentColor" strokeWidth="3" fill="none" className="text-foreground/15" />
                 <circle
                   cx="22"
                   cy="22"
@@ -446,7 +446,7 @@ export default function Chat() {
                       {isImage ? (
                         <img src={a.dataUrl} alt={a.name} className="w-10 h-10 object-cover rounded-md" />
                       ) : (
-                        <div className="w-10 h-10 rounded-md bg-white/10 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
                           <FileText className="w-5 h-5 text-muted-foreground" />
                         </div>
                       )}
@@ -460,7 +460,7 @@ export default function Chat() {
                       <button
                         type="button"
                         aria-label={`Remove ${a.name}`}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/10 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center"
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center"
                         onClick={() => removeAttachment(idx)}
                       >
                         <X className="w-3 h-3" />
@@ -496,7 +496,7 @@ export default function Chat() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={isKinesthetic ? "Teach your student..." : "Type your message..."}
-                className="h-14 pl-14 pr-14 rounded-2xl bg-white/5 border-white/10 backdrop-blur-md shadow-sm text-base placeholder:text-muted-foreground"
+                className="h-14 pl-14 pr-14 rounded-2xl bg-card border-border shadow-sm text-base placeholder:text-muted-foreground"
                 disabled={sendMessage.isPending}
               />
               <Button
@@ -527,9 +527,9 @@ export default function Chat() {
             transition={{ type: "spring", stiffness: 220, damping: 22 }}
             className="fixed top-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%]"
           >
-            <div className="breaking-news relative overflow-hidden rounded-2xl border border-red-400/40 bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-2xl">
+            <div className="breaking-news relative overflow-hidden rounded-2xl border border-[hsl(13_67%_50%_/_0.5)] bg-gradient-to-br from-[hsl(13_67%_60%)] to-[hsl(13_67%_48%)] text-white shadow-2xl">
               <div className="relative z-10 flex items-center gap-3 px-5 py-4">
-                <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/20 backdrop-blur-sm border border-white/30 text-[10px] font-bold uppercase tracking-widest">
+                <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/25 backdrop-blur-sm border border-white/40 text-[10px] font-bold uppercase tracking-widest">
                   <Radio className="w-3 h-3 animate-pulse" />
                   Live
                 </div>

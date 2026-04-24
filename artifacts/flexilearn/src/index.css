@@ -64,53 +64,57 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lexend:wght@300;400;500;600&display=swap');
 
-/* PREMIUM MIDNIGHT / INDIGO THEME (default) */
+/* WARM EARTH / SLATE THEME (default) — calm, low-glare cream palette */
 :root {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .08);
+  --button-outline: hsl(35 40% 65% / 0.35);
+  --badge-outline: hsl(35 40% 65% / 0.30);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .08);
+  --elevate-1: hsl(0 0% 0% / 0.03);
+  --elevate-2: hsl(0 0% 0% / 0.06);
 
-  /* Deep midnight with indigo accents */
-  --background: 230 35% 8%;          /* #0d1024-ish midnight */
-  --foreground: 220 30% 96%;
-  --border: 230 25% 22%;
+  /* Cream background (#FAF9F6) with charcoal text (#333) */
+  --background: 40 30% 97%;
+  --foreground: 0 0% 20%;
+  --border: 35 35% 80%;              /* warm wheat border */
 
-  --card: 230 30% 14%;
-  --card-foreground: 220 30% 96%;
-  --card-border: 230 25% 24%;
+  --card: 40 30% 99%;                /* near-white card on cream */
+  --card-foreground: 0 0% 20%;
+  --card-border: 35 35% 82%;
 
-  --sidebar: 230 35% 10%;
-  --sidebar-foreground: 220 30% 95%;
-  --sidebar-border: 230 25% 22%;
-  --sidebar-primary: 250 90% 70%;
+  --sidebar: 40 30% 95%;
+  --sidebar-foreground: 0 0% 20%;
+  --sidebar-border: 35 35% 80%;
+  --sidebar-primary: 208 25% 48%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 230 25% 18%;
-  --sidebar-accent-foreground: 220 30% 95%;
-  --sidebar-ring: 250 90% 70%;
+  --sidebar-accent: 35 40% 88%;
+  --sidebar-accent-foreground: 0 0% 20%;
+  --sidebar-ring: 208 25% 48%;
 
-  --popover: 230 30% 12%;
-  --popover-foreground: 220 30% 96%;
-  --popover-border: 230 25% 22%;
+  --popover: 40 30% 99%;
+  --popover-foreground: 0 0% 20%;
+  --popover-border: 35 35% 82%;
 
-  --primary: 250 90% 68%;            /* Indigo / vivid violet */
+  --primary: 208 25% 48%;            /* Slate Blue #5B7C99 */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 195 90% 60%;          /* Cyan accent */
-  --secondary-foreground: 230 35% 8%;
+  --secondary: 126 14% 60%;          /* Sage Green #8BA88E */
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 230 25% 18%;
-  --muted-foreground: 220 15% 70%;
+  --muted: 35 40% 90%;               /* Warm wheat muted surface */
+  --muted-foreground: 0 0% 35%;
 
-  --accent: 280 80% 70%;             /* Magenta-violet */
+  --accent: 266 22% 62%;             /* Muted Lavender #9B89B3 */
   --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 13 67% 63%;         /* Warm Orange #E07A5F (CTA / alerts) */
   --destructive-foreground: 0 0% 100%;
 
-  --input: 230 25% 22%;
-  --ring: 250 90% 70%;
+  --input: 35 35% 85%;
+  --ring: 208 25% 48%;
+
+  /* Brand accents (used by gradients / orbs / utilities) */
+  --tertiary: 35 40% 75%;            /* Warm wheat #D8C3A5 */
+  --alert: 13 67% 63%;               /* Warm orange (alias of destructive) */
 
   --app-font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   --app-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
@@ -120,21 +124,21 @@
 
   --radius: 1.1rem;
 
-  --shadow-2xs: 0px 1px 2px hsl(230 50% 4% / 0.4);
-  --shadow-xs: 0px 1px 2px hsl(230 50% 4% / 0.4);
-  --shadow-sm: 0 4px 12px hsl(230 50% 4% / 0.35);
-  --shadow: 0 6px 18px hsl(230 50% 4% / 0.4);
-  --shadow-md: 0 10px 30px hsl(230 50% 4% / 0.45);
-  --shadow-lg: 0 20px 50px hsl(230 50% 4% / 0.5);
-  --shadow-xl: 0 30px 80px hsl(230 50% 4% / 0.55);
-  --shadow-2xl: 0 40px 100px hsl(230 50% 4% / 0.6);
+  --shadow-2xs: 0px 1px 2px hsl(208 25% 30% / 0.06);
+  --shadow-xs:  0px 1px 2px hsl(208 25% 30% / 0.07);
+  --shadow-sm:  0 2px 8px  hsl(208 25% 30% / 0.08);
+  --shadow:     0 4px 14px hsl(208 25% 30% / 0.10);
+  --shadow-md:  0 8px 24px hsl(208 25% 30% / 0.10);
+  --shadow-lg:  0 14px 36px hsl(208 25% 30% / 0.12);
+  --shadow-xl:  0 22px 50px hsl(208 25% 30% / 0.14);
+  --shadow-2xl: 0 30px 70px hsl(208 25% 30% / 0.16);
 
-  /* Premium gradient background */
+  /* Soft cream background with subtle slate / sage / wheat washes */
   --app-gradient:
-    radial-gradient(1200px 800px at 8% -10%, hsl(250 90% 30% / 0.45), transparent 60%),
-    radial-gradient(900px 700px at 95% 0%,  hsl(280 80% 35% / 0.35), transparent 65%),
-    radial-gradient(900px 700px at 50% 110%, hsl(195 90% 30% / 0.30), transparent 60%),
-    linear-gradient(180deg, hsl(230 45% 7%) 0%, hsl(230 35% 10%) 50%, hsl(230 40% 6%) 100%);
+    radial-gradient(1200px 800px at 8% -10%, hsl(208 25% 70% / 0.25), transparent 60%),
+    radial-gradient(900px 700px at 95% 0%,   hsl(126 14% 70% / 0.22), transparent 65%),
+    radial-gradient(900px 700px at 50% 110%, hsl(35 40% 78% / 0.30), transparent 60%),
+    linear-gradient(180deg, hsl(40 30% 98%) 0%, hsl(40 30% 96%) 50%, hsl(40 30% 97%) 100%);
 }
 
 /* SENSORY-SAFE THEME (Autism mode) - calm, low-stimulation, light grey-blue */
@@ -213,55 +217,55 @@
   }
 }
 
-/* ============== Glassmorphism utilities (default theme only) ============== */
+/* ============== Soft card surfaces (default theme — light cream) ============== */
 .glass {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.07) 0%,
-    rgba(255, 255, 255, 0.03) 100%
+    hsl(40 30% 100% / 0.85) 0%,
+    hsl(35 40% 96% / 0.75) 100%
   );
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid hsl(35 35% 78% / 0.6);
   box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 6px 20px hsl(208 25% 30% / 0.08),
+    inset 0 1px 0 hsl(0 0% 100% / 0.6);
 }
 
 .glass-strong {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.05) 100%
+    hsl(0 0% 100% / 0.95) 0%,
+    hsl(35 40% 95% / 0.9) 100%
   );
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  border: 1px solid hsl(35 35% 78% / 0.7);
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    0 14px 36px hsl(208 25% 30% / 0.12),
+    inset 0 1px 0 hsl(0 0% 100% / 0.7);
 }
 
 .glass-bubble-user {
-  background: linear-gradient(135deg, hsl(250 90% 65% / 0.95), hsl(280 80% 60% / 0.85));
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 12px 40px hsl(250 90% 30% / 0.45);
+  background: linear-gradient(135deg, hsl(208 25% 50%), hsl(208 30% 42%));
+  border: 1px solid hsl(208 25% 38% / 0.6);
+  box-shadow: 0 8px 24px hsl(208 25% 30% / 0.22);
   color: white;
 }
 
 .glass-bubble-bot {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.03) 100%
+    hsl(0 0% 100% / 0.95) 0%,
+    hsl(35 40% 96% / 0.9) 100%
   );
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid hsl(35 35% 78% / 0.7);
   box-shadow:
-    0 12px 36px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 8px 24px hsl(208 25% 30% / 0.10),
+    inset 0 1px 0 hsl(0 0% 100% / 0.6);
+  color: hsl(var(--foreground));
 }
 
 /* Sensory-safe overrides: kill glass effects, restore solid surfaces */
@@ -285,21 +289,21 @@
 /* ============== Skill-tree node glow ============== */
 .node-glow-active {
   box-shadow:
-    0 0 0 3px hsl(250 90% 70% / 0.25),
-    0 0 24px hsl(250 90% 65% / 0.7),
-    0 0 48px hsl(280 80% 65% / 0.4);
-  background: linear-gradient(135deg, hsl(250 90% 65%), hsl(280 80% 65%));
+    0 0 0 3px hsl(208 25% 60% / 0.30),
+    0 0 18px hsl(208 25% 50% / 0.45),
+    0 0 36px hsl(266 22% 62% / 0.30);
+  background: linear-gradient(135deg, hsl(208 25% 50%), hsl(266 22% 58%));
   color: white;
 }
 
 .node-glow-completed {
-  background: linear-gradient(135deg, hsl(195 90% 55%), hsl(170 80% 55%));
+  background: linear-gradient(135deg, hsl(126 14% 55%), hsl(126 18% 48%));
   color: white;
-  box-shadow: 0 0 16px hsl(195 90% 55% / 0.5);
+  box-shadow: 0 0 14px hsl(126 14% 55% / 0.45);
 }
 
 .node-track {
-  background: linear-gradient(180deg, hsl(250 90% 70% / 0.4), hsl(280 80% 65% / 0.15));
+  background: linear-gradient(180deg, hsl(208 25% 60% / 0.35), hsl(35 40% 75% / 0.30));
 }
 
 .theme-sensory-safe .node-glow-active {
@@ -314,10 +318,10 @@
 }
 .theme-sensory-safe .node-track { background: hsl(var(--border)); }
 
-/* ============== Breaking-news pulse (ADHD challenge popup) ============== */
+/* ============== Breaking-news pulse (ADHD challenge popup) — warm orange ============== */
 @keyframes breaking-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 hsl(0 90% 60% / 0.7), 0 12px 40px hsl(0 90% 40% / 0.4); }
-  50%      { box-shadow: 0 0 0 12px hsl(0 90% 60% / 0), 0 12px 40px hsl(0 90% 40% / 0.4); }
+  0%, 100% { box-shadow: 0 0 0 0 hsl(13 67% 63% / 0.7), 0 12px 32px hsl(13 67% 50% / 0.30); }
+  50%      { box-shadow: 0 0 0 12px hsl(13 67% 63% / 0), 0 12px 32px hsl(13 67% 50% / 0.30); }
 }
 @keyframes breaking-stripe {
   from { background-position: 0 0; }
@@ -356,11 +360,11 @@
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, hsl(250 90% 60% / 0.4), hsl(280 80% 60% / 0.4));
+  background: linear-gradient(180deg, hsl(208 25% 55% / 0.45), hsl(126 14% 55% / 0.45));
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, hsl(250 90% 65% / 0.6), hsl(280 80% 65% / 0.6));
+  background: linear-gradient(180deg, hsl(208 25% 50% / 0.65), hsl(126 14% 50% / 0.65));
 }
 .theme-sensory-safe ::-webkit-scrollbar-thumb {
   background: hsl(210 15% 70%);

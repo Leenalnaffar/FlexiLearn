@@ -63,28 +63,28 @@ export default function Home() {
         animate={{ opacity: 0.9, scale: 1 }}
         transition={{ duration: 1.6, ease: "easeOut" }}
         className="absolute top-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full blur-[110px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(280 95% 65% / 0.85), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsl(208 35% 60% / 0.35), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 0.85, scale: 1 }}
         transition={{ duration: 1.6, ease: "easeOut", delay: 0.15 }}
         className="absolute bottom-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full blur-[110px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(195 95% 60% / 0.75), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsl(126 25% 60% / 0.30), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.7 }}
         transition={{ duration: 1.8, delay: 0.3 }}
         className="absolute top-[20%] left-[30%] w-[40vw] h-[40vw] rounded-full blur-[110px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(330 95% 65% / 0.7), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsl(266 35% 65% / 0.28), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.6 }}
         transition={{ duration: 1.8, delay: 0.45 }}
         className="absolute top-[55%] right-[20%] w-[30vw] h-[30vw] rounded-full blur-[100px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(45 100% 60% / 0.6), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsl(35 55% 70% / 0.35), transparent 70%)" }}
       />
 
       <AnimatePresence mode="wait">
@@ -102,14 +102,14 @@ export default function Home() {
                 <Sparkles className="w-7 h-7 text-primary" />
               </div>
               <h1 className="text-4xl sm:text-6xl font-extrabold mb-4 tracking-tight leading-[1.05]">
-                <span className="block text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]">
+                <span className="block text-foreground/85">
                   Welcome to
                 </span>
                 <span
-                  className="block bg-clip-text text-transparent drop-shadow-[0_4px_24px_rgba(168,85,247,0.45)]"
+                  className="block bg-clip-text text-transparent drop-shadow-[0_2px_12px_rgba(91,124,153,0.25)]"
                   style={{
                     backgroundImage:
-                      "linear-gradient(90deg, #fde68a 0%, #f472b6 30%, #c084fc 55%, #60a5fa 80%, #22d3ee 100%)",
+                      "linear-gradient(90deg, #5B7C99 0%, #8BA88E 35%, #9B89B3 65%, #E07A5F 100%)",
                   }}
                 >
                   FlexiLearn
@@ -135,7 +135,7 @@ export default function Home() {
                   <input
                     type="text"
                     placeholder="What do you want to learn?"
-                    className="flex h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
+                    className="flex h-12 w-full rounded-xl border border-border bg-card px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
                     value={localTopic}
                     onChange={(e) => setLocalTopic(e.target.value)}
                   />
@@ -147,7 +147,7 @@ export default function Home() {
                     Learning Style
                   </label>
                   <Select value={localStyle || ""} onValueChange={(v) => setLocalStyle(v as LearningStyle)}>
-                    <SelectTrigger className="h-12 rounded-xl bg-white/5 border-white/10">
+                    <SelectTrigger className="h-12 rounded-xl bg-card border-border">
                       <SelectValue placeholder="Select how you learn" />
                     </SelectTrigger>
                     <SelectContent>
@@ -177,7 +177,7 @@ export default function Home() {
                     Neuro-Profile
                   </label>
                   <Select value={localNeuro || ""} onValueChange={(v) => setLocalNeuro(v as NeuroProfile)}>
-                    <SelectTrigger className="h-12 rounded-xl bg-white/5 border-white/10">
+                    <SelectTrigger className="h-12 rounded-xl bg-card border-border">
                       <SelectValue placeholder="Select a profile" />
                     </SelectTrigger>
                     <SelectContent>
@@ -203,7 +203,7 @@ export default function Home() {
 
                 <Button
                   size="lg"
-                  className="w-full h-14 text-base font-semibold rounded-xl mt-2 bg-gradient-to-r from-primary via-primary to-accent hover:opacity-95 shadow-[0_8px_30px_hsl(250_90%_50%_/_0.45)] transition-all"
+                  className="w-full h-14 text-base font-semibold rounded-xl mt-2 bg-gradient-to-r from-primary via-primary to-accent hover:opacity-95 shadow-[0_8px_24px_hsl(208_25%_30%_/_0.18)] transition-all"
                   disabled={!localStyle || !localNeuro}
                   onClick={handleStart}
                 >

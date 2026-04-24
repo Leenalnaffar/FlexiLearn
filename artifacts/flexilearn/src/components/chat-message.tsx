@@ -99,13 +99,13 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
                   <img
                     src={a.dataUrl}
                     alt={a.name}
-                    className="max-h-48 max-w-full rounded-xl border border-white/20 object-cover"
+                    className="max-h-48 max-w-full rounded-xl border border-border object-cover"
                   />
                 </a>
               ) : (
                 <div
                   key={i}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 border border-white/20 text-xs"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted border border-border text-xs"
                 >
                   <FileText className="w-4 h-4 shrink-0" />
                   <span className="truncate max-w-[200px]">{a.name}</span>
@@ -118,7 +118,7 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
         <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
 
         {isVisual && mermaidCode && !isUser && (
-          <div className="mt-4 p-4 bg-black/30 border border-white/10 rounded-xl overflow-hidden flex justify-center backdrop-blur-sm">
+          <div className="mt-4 p-4 bg-card border border-border rounded-xl overflow-hidden flex justify-center">
             <div ref={mermaidRef} className="max-w-full overflow-x-auto" />
           </div>
         )}

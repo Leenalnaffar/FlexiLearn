@@ -44,7 +44,7 @@ export function FocusTimer() {
     >
       <div className="relative w-9 h-9">
         <svg className="absolute inset-0 -rotate-90" viewBox="0 0 40 40">
-          <circle cx="20" cy="20" r={r} stroke="currentColor" strokeWidth="3" fill="none" className="text-white/10" />
+          <circle cx="20" cy="20" r={r} stroke="currentColor" strokeWidth="3" fill="none" className="text-foreground/15" />
           <circle
             cx="20"
             cy="20"
