@@ -76,6 +76,7 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   }, [mermaidCode, isVisual]);
 
   const handlePlayTTS = async () => {
+    // Stop current playback if already playing
     if (isPlaying && audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -90,27 +91,36 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: message.content }),
       });
-      if (!res.ok) throw new Error("TTS request failed");
+      if (!res.ok) throw new Error(`TTS request failed: ${res.status}`);
+
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.play();
-      setIsPlaying(true);
-      audio.onended = () => {
+
+      // Attach event handlers BEFORE play() so they fire even for fast tracks
+      const cleanup = () => {
         setIsPlaying(false);
         URL.revokeObjectURL(url);
         audioRef.current = null;
       };
-      audio.onerror = () => {
-        setIsPlaying(false);
-        URL.revokeObjectURL(url);
-        audioRef.current = null;
-      };
-    } catch {
-      setIsPlaying(false);
-    } finally {
+      audio.onended = cleanup;
+      audio.onerror = cleanup;
+
+      // Stop the loading spinner — fetch is done, audio is ready
       setIsLoadingTTS(false);
+
+      // Await play() so any browser autoplay-policy rejection is caught below
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      // play() rejection or fetch failure — reset all state cleanly
+      setIsPlaying(false);
+      setIsLoadingTTS(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     }
   };
 
