@@ -1,0 +1,73 @@
+Here is the updated prompt for your Replit developer, now including specific hex color codes to ensure they match the exact palette you want across all pages.
+
+Prompt for Replit Web Interface Styling
+Project Name: FlexiLearn - Personalized Learning Companion
+
+Global Theme & Color Palette:
+Please use these exact hex codes to ensure consistency across all pages and modes. Do not sample from the second mockup's background; use the global theme defined below.
+
+Primary Background (#1E354D): A rich, deep navy blue (apply a very subtle noise/grain texture to match the reference image). This must be the full-window background for ALL pages.
+
+Core UI Element Background (#F3F0E6): A creamy off-white. Use this for all panels, input fields, dropdowns, full-width top bars, and chat message bubbles (both user and system).
+
+Primary Text (#112233): Dark navy for text sitting on top of the creamy off-white backgrounds.
+
+Secondary Text/Placeholders (#7A8B99): A muted grey-blue for optional labels and input placeholders.
+
+Accent Gradient: Transition from Soft Red (#E56B6F) to Soft Green (#75C9A8).
+
+Page 1: Front Welcome/Personalization Page
+
+Header Section (Centered on #1E354D background):
+
+Text: "Welcome to" (Color: White #FFFFFF).
+
+Text: "FlexiLearn" (Color: Apply the Accent Gradient #E56B6F to #75C9A8 to the text fill).
+
+Subtitle: "Your personalized learning companion. Tell us how you learn best, and we'll adapt to you." (Color: Light Grey #D0D6DC).
+
+Central Panel/Card:
+
+Background: Creamy off-white (#F3F0E6).
+
+Title: Pulse-wave icon followed by "Personalize Your Experience" (Color: Dark Navy #112233).
+
+Input Fields (Topic, Learning Style, Neuro-Profile):
+
+Background: Creamy off-white (#F3F0E6) with a very subtle inner shadow or raised drop shadow to differentiate from the panel.
+
+Labels & Icons: "Topic (optional)", "Learning Style", "Neuro-Profile" alongside respective book/eye/brain icons. (Color: Dark Navy #112233 for icons, Secondary Text #7A8B99 for labels).
+
+Topic Field Specifics: Add a translucent search icon inside the right edge of the input.
+
+Placeholder Text: (Color: Secondary Text #7A8B99).
+
+Page 2: Chat/Manager Page
+
+Background: Must be the Primary Background deep navy (#1E354D), overriding the white background seen in the second mockup.
+
+Top Header Bar (Full width):
+
+Background: Creamy off-white (#F3F0E6).
+
+Left-aligned: "Home" button (Pill-shaped, #F3F0E6 background, thin border).
+
+Center/Left-aligned: "Manager" title with subtitle "Auditory • Dyslexia" (Color: Dark Navy #112233).
+
+Main Content Area (Centered on #1E354D background):
+
+Central Icon: The 4-point spark/star icon. Circle background: #F3F0E6, Icon fill: Deep Navy (#1E354D).
+
+Central Text: "Start your customized learning session." (Color: Light Grey #D0D6DC).
+
+Chat Bubbles (When populated): Both user and system chat bubbles must use the Creamy off-white (#F3F0E6) background with Dark Navy (#112233) text.
+
+Bottom Chat/Input Bar (Fixed to bottom):
+
+Input Bar Background: Creamy off-white (#F3F0E6), pill-shaped.
+
+Icons: Left paperclip icon (Color: #7A8B99). Right send-arrow icon (Button background: Subtle Accent Gradient #E56B6F to #75C9A8 at 30% opacity, Arrow color: Dark Navy #112233).
+
+Placeholder Text: "Type your message..." (Color: #7A8B99).
+
+Helper Text Below Input: "FlexiLearn AI is adapting to your auditory style..." (Color: Light Grey #D0D6DC).
