@@ -64,57 +64,57 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lexend:wght@300;400;500;600&display=swap');
 
-/* WARM EARTH / SLATE THEME (default) — calm, low-glare cream palette */
+/* MIDNIGHT & CORAL-MINT THEME (default) — deep navy bg, cream panels, red→green accent */
 :root {
-  --button-outline: hsl(35 40% 65% / 0.35);
-  --badge-outline: hsl(35 40% 65% / 0.30);
+  --button-outline: hsl(358 70% 66% / 0.35);
+  --badge-outline: hsl(158 44% 62% / 0.30);
   --opaque-button-border-intensity: -8;
-  --elevate-1: hsl(0 0% 0% / 0.03);
-  --elevate-2: hsl(0 0% 0% / 0.06);
+  --elevate-1: hsl(0 0% 0% / 0.08);
+  --elevate-2: hsl(0 0% 0% / 0.14);
 
-  /* Cream background (#FAF9F6) with charcoal text (#333) */
-  --background: 40 30% 97%;
-  --foreground: 0 0% 20%;
-  --border: 35 35% 80%;              /* warm wheat border */
+  /* Navy background (#1E354D) */
+  --background: 210 44% 21%;
+  --foreground: 0 0% 96%;
+  --border: 210 28% 32%;
 
-  --card: 40 30% 99%;                /* near-white card on cream */
-  --card-foreground: 0 0% 20%;
-  --card-border: 35 35% 82%;
+  --card: 45 35% 93%;                /* Cream #F3F0E6 */
+  --card-foreground: 210 50% 13%;    /* Dark Navy #112233 */
+  --card-border: 45 20% 84%;
 
-  --sidebar: 40 30% 95%;
-  --sidebar-foreground: 0 0% 20%;
-  --sidebar-border: 35 35% 80%;
-  --sidebar-primary: 208 25% 48%;
+  --sidebar: 210 44% 17%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 210 28% 28%;
+  --sidebar-primary: 358 70% 66%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 35 40% 88%;
-  --sidebar-accent-foreground: 0 0% 20%;
-  --sidebar-ring: 208 25% 48%;
+  --sidebar-accent: 158 44% 62%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 358 70% 66%;
 
-  --popover: 40 30% 99%;
-  --popover-foreground: 0 0% 20%;
-  --popover-border: 35 35% 82%;
+  --popover: 45 35% 93%;
+  --popover-foreground: 210 50% 13%;
+  --popover-border: 45 20% 84%;
 
-  --primary: 208 25% 48%;            /* Slate Blue #5B7C99 */
+  --primary: 358 70% 66%;            /* Soft Red #E56B6F */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 126 14% 60%;          /* Sage Green #8BA88E */
+  --secondary: 158 44% 62%;          /* Soft Green #75C9A8 */
   --secondary-foreground: 0 0% 100%;
 
-  --muted: 35 40% 90%;               /* Warm wheat muted surface */
-  --muted-foreground: 0 0% 35%;
+  --muted: 210 35% 28%;              /* Muted navy surface */
+  --muted-foreground: 207 12% 54%;   /* Grey-blue #7A8B99 */
 
-  --accent: 266 22% 62%;             /* Muted Lavender #9B89B3 */
+  --accent: 158 44% 62%;             /* Soft Green (alias) */
   --accent-foreground: 0 0% 100%;
 
-  --destructive: 13 67% 63%;         /* Warm Orange #E07A5F (CTA / alerts) */
+  --destructive: 358 70% 66%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 35 35% 85%;
-  --ring: 208 25% 48%;
+  --input: 45 35% 93%;               /* Cream input bg */
+  --ring: 358 70% 66%;
 
   /* Brand accents (used by gradients / orbs / utilities) */
-  --tertiary: 35 40% 75%;            /* Warm wheat #D8C3A5 */
-  --alert: 13 67% 63%;               /* Warm orange (alias of destructive) */
+  --tertiary: 158 44% 62%;           /* Soft green alias */
+  --alert: 358 70% 66%;              /* Soft red alias */
 
   --app-font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   --app-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
@@ -124,21 +124,21 @@
 
   --radius: 1.1rem;
 
-  --shadow-2xs: 0px 1px 2px hsl(208 25% 30% / 0.06);
-  --shadow-xs:  0px 1px 2px hsl(208 25% 30% / 0.07);
-  --shadow-sm:  0 2px 8px  hsl(208 25% 30% / 0.08);
-  --shadow:     0 4px 14px hsl(208 25% 30% / 0.10);
-  --shadow-md:  0 8px 24px hsl(208 25% 30% / 0.10);
-  --shadow-lg:  0 14px 36px hsl(208 25% 30% / 0.12);
-  --shadow-xl:  0 22px 50px hsl(208 25% 30% / 0.14);
-  --shadow-2xl: 0 30px 70px hsl(208 25% 30% / 0.16);
+  --shadow-2xs: 0px 1px 2px hsl(210 44% 10% / 0.14);
+  --shadow-xs:  0px 1px 2px hsl(210 44% 10% / 0.18);
+  --shadow-sm:  0 2px 8px  hsl(210 44% 10% / 0.22);
+  --shadow:     0 4px 14px hsl(210 44% 10% / 0.26);
+  --shadow-md:  0 8px 24px hsl(210 44% 10% / 0.28);
+  --shadow-lg:  0 14px 36px hsl(210 44% 10% / 0.32);
+  --shadow-xl:  0 22px 50px hsl(210 44% 10% / 0.36);
+  --shadow-2xl: 0 30px 70px hsl(210 44% 10% / 0.40);
 
-  /* Soft cream background with subtle slate / sage / wheat washes */
+  /* Navy background with subtle radial depth washes */
   --app-gradient:
-    radial-gradient(1200px 800px at 8% -10%, hsl(208 25% 70% / 0.25), transparent 60%),
-    radial-gradient(900px 700px at 95% 0%,   hsl(126 14% 70% / 0.22), transparent 65%),
-    radial-gradient(900px 700px at 50% 110%, hsl(35 40% 78% / 0.30), transparent 60%),
-    linear-gradient(180deg, hsl(40 30% 98%) 0%, hsl(40 30% 96%) 50%, hsl(40 30% 97%) 100%);
+    radial-gradient(900px 700px at 10% 0%,    hsl(358 60% 40% / 0.12), transparent 65%),
+    radial-gradient(800px 600px at 90% 100%,  hsl(158 50% 35% / 0.12), transparent 65%),
+    radial-gradient(600px 500px at 50% 50%,   hsl(210 44% 28% / 0.30), transparent 70%),
+    linear-gradient(180deg, hsl(210 44% 21%) 0%, hsl(210 44% 19%) 100%);
 }
 
 /* SENSORY-SAFE THEME (Autism mode) - calm, low-stimulation, light grey-blue */
@@ -217,55 +217,48 @@
   }
 }
 
-/* ============== Soft card surfaces (default theme — light cream) ============== */
+/* ============== Surfaces (default: navy bg, cream panels) ============== */
 .glass {
   background: linear-gradient(
     135deg,
-    hsl(40 30% 100% / 0.85) 0%,
-    hsl(35 40% 96% / 0.75) 100%
+    hsl(210 44% 30% / 0.80) 0%,
+    hsl(210 40% 24% / 0.70) 100%
   );
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  border: 1px solid hsl(35 35% 78% / 0.6);
+  backdrop-filter: blur(14px) saturate(110%);
+  -webkit-backdrop-filter: blur(14px) saturate(110%);
+  border: 1px solid hsl(210 30% 42% / 0.50);
   box-shadow:
-    0 6px 20px hsl(208 25% 30% / 0.08),
-    inset 0 1px 0 hsl(0 0% 100% / 0.6);
+    0 6px 20px hsl(210 44% 10% / 0.30),
+    inset 0 1px 0 hsl(0 0% 100% / 0.07);
 }
 
 .glass-strong {
-  background: linear-gradient(
-    135deg,
-    hsl(0 0% 100% / 0.95) 0%,
-    hsl(35 40% 95% / 0.9) 100%
-  );
-  backdrop-filter: blur(18px) saturate(130%);
-  -webkit-backdrop-filter: blur(18px) saturate(130%);
-  border: 1px solid hsl(35 35% 78% / 0.7);
+  background: hsl(45 35% 93%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid hsl(45 20% 83% / 0.90);
   box-shadow:
-    0 14px 36px hsl(208 25% 30% / 0.12),
-    inset 0 1px 0 hsl(0 0% 100% / 0.7);
+    0 14px 36px hsl(210 44% 10% / 0.36),
+    inset 0 1px 0 hsl(0 0% 100% / 0.55);
+  color: hsl(210 50% 13%);
 }
 
 .glass-bubble-user {
-  background: linear-gradient(135deg, hsl(208 25% 50%), hsl(208 30% 42%));
-  border: 1px solid hsl(208 25% 38% / 0.6);
-  box-shadow: 0 8px 24px hsl(208 25% 30% / 0.22);
-  color: white;
+  background: hsl(45 35% 93%);
+  border: 1px solid hsl(45 20% 83% / 0.80);
+  box-shadow: 0 6px 18px hsl(210 44% 10% / 0.22);
+  color: hsl(210 50% 13%);
 }
 
 .glass-bubble-bot {
-  background: linear-gradient(
-    135deg,
-    hsl(0 0% 100% / 0.95) 0%,
-    hsl(35 40% 96% / 0.9) 100%
-  );
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid hsl(35 35% 78% / 0.7);
+  background: hsl(45 35% 93%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid hsl(45 20% 83% / 0.80);
   box-shadow:
-    0 8px 24px hsl(208 25% 30% / 0.10),
-    inset 0 1px 0 hsl(0 0% 100% / 0.6);
-  color: hsl(var(--foreground));
+    0 6px 18px hsl(210 44% 10% / 0.16),
+    inset 0 1px 0 hsl(0 0% 100% / 0.55);
+  color: hsl(210 50% 13%);
 }
 
 /* Sensory-safe overrides: kill glass effects, restore solid surfaces */
@@ -289,21 +282,21 @@
 /* ============== Skill-tree node glow ============== */
 .node-glow-active {
   box-shadow:
-    0 0 0 3px hsl(208 25% 60% / 0.30),
-    0 0 18px hsl(208 25% 50% / 0.45),
-    0 0 36px hsl(266 22% 62% / 0.30);
-  background: linear-gradient(135deg, hsl(208 25% 50%), hsl(266 22% 58%));
+    0 0 0 3px hsl(358 70% 66% / 0.30),
+    0 0 18px hsl(358 70% 66% / 0.45),
+    0 0 36px hsl(158 44% 62% / 0.25);
+  background: linear-gradient(135deg, hsl(358 70% 66%), hsl(158 44% 52%));
   color: white;
 }
 
 .node-glow-completed {
-  background: linear-gradient(135deg, hsl(126 14% 55%), hsl(126 18% 48%));
+  background: linear-gradient(135deg, hsl(158 44% 55%), hsl(158 44% 46%));
   color: white;
-  box-shadow: 0 0 14px hsl(126 14% 55% / 0.45);
+  box-shadow: 0 0 14px hsl(158 44% 55% / 0.45);
 }
 
 .node-track {
-  background: linear-gradient(180deg, hsl(208 25% 60% / 0.35), hsl(35 40% 75% / 0.30));
+  background: linear-gradient(180deg, hsl(358 60% 50% / 0.35), hsl(158 44% 45% / 0.28));
 }
 
 .theme-sensory-safe .node-glow-active {
@@ -360,11 +353,11 @@
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, hsl(208 25% 55% / 0.45), hsl(126 14% 55% / 0.45));
+  background: linear-gradient(180deg, hsl(358 55% 55% / 0.45), hsl(158 44% 55% / 0.45));
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, hsl(208 25% 50% / 0.65), hsl(126 14% 50% / 0.65));
+  background: linear-gradient(180deg, hsl(358 55% 55% / 0.65), hsl(158 44% 55% / 0.65));
 }
 .theme-sensory-safe ::-webkit-scrollbar-thumb {
   background: hsl(210 15% 70%);

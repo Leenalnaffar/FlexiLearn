@@ -60,31 +60,31 @@ export default function Home() {
       {/* Animated decorative orbs - extra vibrant */}
       <MotionDiv
         initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: 0.9, scale: 1 }}
+        animate={{ opacity: 0.55, scale: 1 }}
         transition={{ duration: 1.6, ease: "easeOut" }}
-        className="absolute top-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full blur-[110px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(208 35% 60% / 0.35), transparent 70%)" }}
+        className="absolute top-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(358 70% 55% / 0.40), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: 0.85, scale: 1 }}
+        animate={{ opacity: 0.50, scale: 1 }}
         transition={{ duration: 1.6, ease: "easeOut", delay: 0.15 }}
-        className="absolute bottom-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full blur-[110px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(126 25% 60% / 0.30), transparent 70%)" }}
+        className="absolute bottom-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(158 44% 45% / 0.38), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.7 }}
+        animate={{ opacity: 0.35 }}
         transition={{ duration: 1.8, delay: 0.3 }}
         className="absolute top-[20%] left-[30%] w-[40vw] h-[40vw] rounded-full blur-[110px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(266 35% 65% / 0.28), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsl(210 44% 38% / 0.40), transparent 70%)" }}
       />
       <MotionDiv
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.6 }}
+        animate={{ opacity: 0.40 }}
         transition={{ duration: 1.8, delay: 0.45 }}
         className="absolute top-[55%] right-[20%] w-[30vw] h-[30vw] rounded-full blur-[100px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(35 55% 70% / 0.35), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsl(158 55% 50% / 0.30), transparent 70%)" }}
       />
 
       <AnimatePresence mode="wait">
@@ -102,20 +102,20 @@ export default function Home() {
                 <Sparkles className="w-7 h-7 text-primary" />
               </div>
               <h1 className="text-4xl sm:text-6xl font-extrabold mb-4 tracking-tight leading-[1.05]">
-                <span className="block text-foreground/85">
+                <span className="block text-white">
                   Welcome to
                 </span>
                 <span
-                  className="block bg-clip-text text-transparent drop-shadow-[0_2px_12px_rgba(91,124,153,0.25)]"
+                  className="block bg-clip-text text-transparent drop-shadow-[0_2px_16px_rgba(229,107,111,0.35)]"
                   style={{
                     backgroundImage:
-                      "linear-gradient(90deg, #5B7C99 0%, #8BA88E 35%, #9B89B3 65%, #E07A5F 100%)",
+                      "linear-gradient(90deg, #E56B6F 0%, #75C9A8 100%)",
                   }}
                 >
                   FlexiLearn
                 </span>
               </h1>
-              <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
+              <p className="text-base sm:text-lg max-w-md mx-auto" style={{ color: "#D0D6DC" }}>
                 Your personalized learning companion. Tell us how you learn best, and we'll adapt to you.
               </p>
             </div>
@@ -203,7 +203,10 @@ export default function Home() {
 
                 <Button
                   size="lg"
-                  className="w-full h-14 text-base font-semibold rounded-xl mt-2 bg-gradient-to-r from-primary via-primary to-accent hover:opacity-95 shadow-[0_8px_24px_hsl(208_25%_30%_/_0.18)] transition-all"
+                  className="w-full h-14 text-base font-semibold rounded-xl mt-2 text-white hover:opacity-95 shadow-[0_8px_28px_hsl(358_70%_40%_/_0.35)] transition-all"
+                  style={{
+                    background: "linear-gradient(90deg, #E56B6F 0%, #75C9A8 100%)",
+                  }}
                   disabled={!localStyle || !localNeuro}
                   onClick={handleStart}
                 >
@@ -213,7 +216,7 @@ export default function Home() {
               </div>
             </div>
 
-            <p className="text-center text-xs text-muted-foreground mt-6">
+            <p className="text-center text-xs mt-6" style={{ color: "#7A8B99" }}>
               FlexiLearn adapts in real time — change anything later from the chat.
             </p>
           </MotionDiv>

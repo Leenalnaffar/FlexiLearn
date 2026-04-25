@@ -321,7 +321,7 @@ export default function Chat() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-4 sm:px-6 border-b border-border bg-card/30 backdrop-blur-xl z-10 shrink-0">
+        <header className="h-16 flex items-center justify-between px-4 sm:px-6 border-b border-card-border z-10 shrink-0" style={{ background: "hsl(45 35% 93%)", color: "hsl(210 50% 13%)" }}>
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -353,13 +353,12 @@ export default function Chat() {
                   strokeDasharray={ringC}
                   strokeDashoffset={ringOffset}
                   className="transition-all duration-700 ease-out"
-                  style={{ filter: "drop-shadow(0 0 6px hsl(250 90% 65% / 0.6))" }}
+                  style={{ filter: "drop-shadow(0 0 6px hsl(358 70% 66% / 0.55))" }}
                 />
                 <defs>
                   <linearGradient id="progressGrad" x1="0" x2="1" y1="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(250 90% 70%)" />
-                    <stop offset="50%" stopColor="hsl(280 80% 70%)" />
-                    <stop offset="100%" stopColor="hsl(195 90% 60%)" />
+                    <stop offset="0%" stopColor="#E56B6F" />
+                    <stop offset="100%" stopColor="#75C9A8" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -432,7 +431,7 @@ export default function Chat() {
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="p-4 sm:p-6 border-t border-border bg-card/30 backdrop-blur-xl shrink-0">
+        <div className="p-4 sm:p-6 border-t shrink-0" style={{ background: "hsl(45 35% 93%)", borderColor: "hsl(45 20% 84%)" }}>
           <div className="max-w-3xl mx-auto">
             {pendingAttachments.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
@@ -501,7 +500,8 @@ export default function Chat() {
               />
               <Button
                 size="icon"
-                className="absolute right-2 w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_8px_24px_hsl(250_90%_50%_/_0.4)]"
+                className="absolute right-2 w-10 h-10 rounded-xl shadow-[0_6px_20px_hsl(358_70%_40%_/_0.35)]"
+                style={{ background: "linear-gradient(135deg, #E56B6F, #75C9A8)" }}
                 disabled={(!input.trim() && pendingAttachments.length === 0) || sendMessage.isPending}
                 onClick={handleSend}
               >
