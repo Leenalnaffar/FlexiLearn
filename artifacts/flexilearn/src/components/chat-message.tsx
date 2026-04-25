@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 import { Button } from "@/components/ui/button";
-import { Download, PlayCircle, FileText } from "lucide-react";
+import { Download, Volume2, VolumeX, FileText } from "lucide-react";
 import { usePreferences } from "@/hooks/use-preferences";
 import { MotionDiv } from "@/components/motion-wrapper";
 import { ChatMessage as ApiChatMessage } from "@workspace/api-client-react";
@@ -12,21 +12,58 @@ interface ChatMessageProps {
   mermaidCode?: string;
 }
 
+function renderContent(text: string): React.ReactNode[] {
+  const segments = text.split(/(https?:\/\/[^\s\n,;>)"'\]]+|\[[^\]]+\]\(https?:\/\/[^)]+\))/g);
+  return segments.map((seg, i) => {
+    const mdLink = seg.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+    if (mdLink) {
+      return (
+        <a
+          key={i}
+          href={mdLink[2]}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="underline underline-offset-2 font-medium"
+          style={{ color: "#E56B6F" }}
+        >
+          {mdLink[1]}
+        </a>
+      );
+    }
+    if (/^https?:\/\//.test(seg)) {
+      return (
+        <a
+          key={i}
+          href={seg}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="underline underline-offset-2 font-medium break-all"
+          style={{ color: "#E56B6F" }}
+        >
+          {seg}
+        </a>
+      );
+    }
+    return <span key={i}>{seg}</span>;
+  });
+}
+
 export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   const { learningStyle, neuroProfile } = usePreferences();
   const isUser = message.role === "user";
 
   const isDyslexia = neuroProfile === "dyslexia";
   const isVisual = learningStyle === "visual";
-  const isAuditory = learningStyle === "auditory";
   const isReading = learningStyle === "reading";
 
   const mermaidRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingTTS, setIsLoadingTTS] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (isVisual && mermaidCode && mermaidRef.current) {
-      mermaid.initialize({ startOnLoad: false, theme: "dark" });
+      mermaid.initialize({ startOnLoad: false, theme: "neutral" });
       mermaid
         .render(`mermaid-${Math.random().toString(36).substring(2)}`, mermaidCode)
         .then((result) => {
@@ -38,18 +75,43 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
     }
   }, [mermaidCode, isVisual]);
 
-  const handlePlayTTS = () => {
-    if (!window.speechSynthesis) return;
-    if (isPlaying) {
-      window.speechSynthesis.cancel();
+  const handlePlayTTS = async () => {
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
       setIsPlaying(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(message.content);
-    utterance.onend = () => setIsPlaying(false);
-    setIsPlaying(true);
-    window.speechSynthesis.speak(utterance);
+    setIsLoadingTTS(true);
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: message.content }),
+      });
+      if (!res.ok) throw new Error("TTS request failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.play();
+      setIsPlaying(true);
+      audio.onended = () => {
+        setIsPlaying(false);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+      };
+      audio.onerror = () => {
+        setIsPlaying(false);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+      };
+    } catch {
+      setIsPlaying(false);
+    } finally {
+      setIsLoadingTTS(false);
+    }
   };
 
   const handleDownloadMd = () => {
@@ -79,14 +141,28 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           isReading && !isUser && "font-serif text-[1.05rem] leading-relaxed",
         )}
       >
-        {!isUser && isAuditory && (
+        {!isUser && (
           <Button
-            variant="secondary"
+            variant="ghost"
             size="icon"
-            className="absolute -left-12 top-0 h-10 w-10 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            className={cn(
+              "absolute -right-12 top-0 h-9 w-9 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+              isPlaying && "opacity-100",
+            )}
+            style={{
+              background: isPlaying ? "hsl(158 44% 62% / 0.15)" : undefined,
+              color: isPlaying ? "#75C9A8" : "#7A8B99",
+            }}
             onClick={handlePlayTTS}
+            disabled={isLoadingTTS}
+            aria-label={isPlaying ? "Stop playback" : "Listen to this response"}
+            title={isPlaying ? "Stop" : "Listen"}
           >
-            <PlayCircle className={cn("w-5 h-5", isPlaying && "text-primary animate-pulse")} />
+            {isPlaying ? (
+              <VolumeX className="w-4 h-4 animate-pulse" />
+            ) : (
+              <Volume2 className={cn("w-4 h-4", isLoadingTTS && "animate-pulse opacity-50")} />
+            )}
           </Button>
         )}
 
@@ -115,10 +191,10 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           </div>
         )}
 
-        <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+        <div className="whitespace-pre-wrap leading-relaxed">{renderContent(message.content)}</div>
 
         {isVisual && mermaidCode && !isUser && (
-          <div className="mt-4 p-4 bg-card border border-border rounded-xl overflow-hidden flex justify-center">
+          <div className="mt-4 p-4 bg-white/80 border border-border rounded-xl overflow-hidden flex justify-center">
             <div ref={mermaidRef} className="max-w-full overflow-x-auto" />
           </div>
         )}

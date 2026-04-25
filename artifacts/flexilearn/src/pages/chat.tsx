@@ -8,9 +8,16 @@ import {
   ChatAttachment,
   ChatResponseAgent,
 } from "@workspace/api-client-react";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ArrowUp,
   Sparkles,
@@ -25,6 +32,9 @@ import {
   Zap,
   CheckCircle2,
   Radio,
+  Trophy,
+  TrendingUp,
+  BookOpenCheck,
 } from "lucide-react";
 import { FocusTimer } from "@/components/focus-timer";
 import { ChatMessage } from "@/components/chat-message";
@@ -49,12 +59,34 @@ export default function Chat() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showChallenge, setShowChallenge] = useState(false);
   const [completedMilestones, setCompletedMilestones] = useState(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackData, setFeedbackData] = useState<{
+    nailed: string;
+    growth: string;
+    suggestions: string;
+  } | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sendMessage = useSendChatMessage();
   const getSessionMap = useGetSessionMap();
+
+  const feedbackMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ history, topic }),
+      });
+      if (!res.ok) throw new Error("Feedback request failed");
+      return res.json() as Promise<{ nailed: string; growth: string; suggestions: string }>;
+    },
+    onSuccess: (data) => {
+      setFeedbackData(data);
+      setShowFeedback(true);
+    },
+  });
 
   useEffect(() => {
     if (!learningStyle || !neuroProfile) {
@@ -496,6 +528,7 @@ export default function Chat() {
                 onKeyDown={handleKeyDown}
                 placeholder={isKinesthetic ? "Teach your student..." : "Type your message..."}
                 className="h-14 pl-14 pr-14 rounded-2xl bg-card border-border shadow-sm text-base placeholder:text-muted-foreground"
+                style={{ color: "#112233" }}
                 disabled={sendMessage.isPending}
               />
               <Button
@@ -509,13 +542,62 @@ export default function Chat() {
               </Button>
             </div>
           </div>
+          {isKinesthetic && history.filter((m) => m.role === "user").length > 0 && (
+            <div className="max-w-3xl mx-auto mt-3 flex justify-center">
+              <Button
+                onClick={() => feedbackMutation.mutate()}
+                disabled={feedbackMutation.isPending}
+                className="gap-2 rounded-full px-6 py-2 text-sm font-semibold"
+                style={{ background: "#4A6274", color: "#F3F0E6" }}
+              >
+                <BookOpenCheck className="w-4 h-4" />
+                {feedbackMutation.isPending ? "Analysing session…" : "Finish & Get Feedback"}
+              </Button>
+            </div>
+          )}
           <div className="max-w-3xl mx-auto text-center mt-2">
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px]" style={{ color: "#7A8B99" }}>
               FlexiLearn AI is adapting to your {learningStyle} style. Attach images or text files for richer lessons.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Kinesthetic Session Feedback Dialog */}
+      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+        <DialogContent className="max-w-lg rounded-3xl" style={{ background: "#F3F0E6", color: "#112233" }}>
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold" style={{ color: "#112233" }}>
+              Your Session Recap
+            </DialogTitle>
+          </DialogHeader>
+          {feedbackData && (
+            <div className="space-y-5 mt-2">
+              <div className="rounded-2xl p-4" style={{ background: "hsl(158 44% 62% / 0.15)", borderLeft: "4px solid #75C9A8" }}>
+                <div className="flex items-center gap-2 mb-2 font-semibold" style={{ color: "#112233" }}>
+                  <Trophy className="w-4 h-4" style={{ color: "#75C9A8" }} />
+                  What You Nailed
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: "#112233" }}>{feedbackData.nailed}</p>
+              </div>
+              <div className="rounded-2xl p-4" style={{ background: "hsl(358 70% 66% / 0.10)", borderLeft: "4px solid #E56B6F" }}>
+                <div className="flex items-center gap-2 mb-2 font-semibold" style={{ color: "#112233" }}>
+                  <TrendingUp className="w-4 h-4" style={{ color: "#E56B6F" }} />
+                  Areas for Growth
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: "#112233" }}>{feedbackData.growth}</p>
+              </div>
+              <div className="rounded-2xl p-4" style={{ background: "hsl(210 44% 21% / 0.08)", borderLeft: "4px solid #4A6274" }}>
+                <div className="flex items-center gap-2 mb-2 font-semibold" style={{ color: "#112233" }}>
+                  <BookOpenCheck className="w-4 h-4" style={{ color: "#4A6274" }} />
+                  Study Suggestions
+                </div>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#112233" }}>{feedbackData.suggestions}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Lightning Challenge — Breaking-news popup (ADHD only) */}
       <AnimatePresence>

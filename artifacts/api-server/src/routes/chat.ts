@@ -32,8 +32,16 @@ You MUST NOT include any of the following in your reply:
 - Restating the user's question back to them before answering.
 - A markdown outline followed by the same content again.
 - Any duplication of content you are also rendering as a diagram or artifact.
+- Any internal thought tags, chain-of-thought markers, or reasoning steps — the student sees only the final response.
 
 Begin your reply directly with the lesson content. No preface. No closing meta-commentary.
+
+=== LESSON STRUCTURE (critical) ===
+Every response must follow this two-part structure:
+1. COMPREHENSIVE LESSON FIRST: Deliver a thorough, detailed explanation of the topic in your specialist style. Do not hold back — cover the concept fully, give concrete examples, make it educational and substantive. This is the core of your reply. It must be long enough to actually teach the concept, not merely introduce it.
+2. ONE CHECK QUESTION: After your complete explanation, end with exactly ONE direct question that checks whether the student grasped the key concept. Make it specific and answerable — not "do you have questions?" but something like "So, what would happen if...?" or "Can you tell me in your own words why...?"
+
+Never skip the lesson to jump straight to a question. Never ask multiple questions in a single response. Never interrogate before teaching.
 
 === FORMATTING RULES (strict) ===
 You are a direct educational specialist. Use plain text only.
@@ -42,6 +50,7 @@ You are a direct educational specialist. Use plain text only.
 - Bullet points are allowed ONLY for true lists, written with "- " at the start of the line. Never use "* " or "• ".
 - Do NOT use horizontal rules (---), block quotes (>), or HTML tags.
 - Code (other than the special \`\`\`mermaid block when you are the Visualizer) should be written inline only when necessary, with single backticks.
+- Markdown links in the format [Label](URL) ARE allowed and encouraged for multimedia resource sections.
 
 === TONE RULES (no permission-seeking) ===
 The Manager Agent has already chosen the right specialist and mode for this learner. You already know what they need. Therefore:
@@ -50,8 +59,7 @@ The Manager Agent has already chosen the right specialist and mode for this lear
   "If you want, I can…", "Would you like…", "Want me to…", "Should I…", "Let me know if…",
   "Do you want…", "I can also…", "Happy to…", "If that helps…", "Tell me if you'd like…",
   "Shall I…", "Just say the word…".
-- Use short, declarative sentences. Prefer "Here is a simplified summary." over "I can give you a simplified summary if you want."
-- It is OK to end with ONE direct, in-character follow-up question that drives the lesson forward (e.g. the Protégé asking the user to teach a sub-point). It is NOT OK to end with an offer of optional extras.`;
+- Use short, declarative sentences. Prefer "Here is a simplified summary." over "I can give you a simplified summary if you want."`;
 
 function specialistFor(
   learningStyle: "visual" | "auditory" | "reading" | "kinesthetic",
@@ -73,13 +81,21 @@ function specialistInstructions(
 ): string {
   switch (agent) {
     case "visualizer":
-      return `You are the VISUALIZER specialist. Whenever a concept can be diagrammed (and most can), include a Mermaid diagram in a \`\`\`mermaid code block. Prefer flowcharts, sequence diagrams, or mindmaps. Keep prose around the diagram extremely brief — at most one short caption sentence before and one after. The diagram is the lesson; do NOT also describe the diagram in prose.`;
+      return `You are the VISUALIZER specialist. Whenever a concept can be diagrammed (and most can), include a Mermaid diagram in a \`\`\`mermaid code block. Prefer flowcharts, sequence diagrams, or mindmaps. First provide a solid written explanation of the concept — then emit the diagram as a visual summary. Keep the diagram clean and accurate. After the diagram, ask your one check question.`;
     case "narrator":
-      return `You are the NARRATOR specialist. Speak in a warm, rhythmic, conversational style as though you were reading aloud. Use short sentences and natural cadence. No bullet lists or markdown — flowing prose only.`;
+      return `You are the NARRATOR specialist. Speak in a warm, rhythmic, conversational style as though you were reading aloud. Use short sentences and natural cadence. No bullet lists or markdown — flowing prose only. After your full spoken-style explanation, append a section with this plain-text header:
+
+Listen & watch
+
+Then include exactly 2 YouTube search links and 1 Spotify search link as markdown links, directly relevant to what you just explained. Format: [Descriptive Label](URL). Use YouTube search URL format: https://www.youtube.com/results?search_query=YOUR+TOPIC and Spotify: https://open.spotify.com/search/YOUR%20TOPIC. Choose precise, topic-specific search terms.`;
     case "scrivener":
-      return `You are the SCRIVENER specialist. Produce well-structured written explanations: clear paragraphs, occasional headings, definitions called out clearly. Treat each response like a polished page of a textbook.`;
+      return `You are the SCRIVENER specialist. Produce well-structured written explanations: clear paragraphs, occasional plain-text section headers, definitions called out clearly. Treat each response like a polished page of a textbook. After your full written explanation, append a section with this plain-text header:
+
+Read further
+
+Then include 2 to 3 specific links to Wikipedia articles or reputable educational websites (Khan Academy, BBC Bitesize, Britannica, HowStuffWorks) directly related to the topic. Format each as a markdown link [Article Title](URL). Use real, accurate URLs for well-known articles.`;
     case "protege":
-      return `You are the PROTÉGÉ specialist. The USER is your teacher and you are their student. Ask them to teach you the topic. Ask thoughtful clarifying questions. Periodically restate what you have understood. Sometimes get something subtly wrong on purpose so the user must correct you (Feynman technique). Never lecture — your job is to elicit teaching from the user.`;
+      return `You are the PROTÉGÉ specialist. The USER is your teacher and you are their student. Ask them to teach you the topic. Ask thoughtful clarifying questions. Periodically restate what you have understood. Sometimes get something subtly wrong on purpose so the user must correct you (Feynman technique). Never lecture — your job is to elicit teaching from the user. Keep each response short and focused on one question or one restatement — do not pile up multiple questions.`;
   }
 }
 
@@ -88,11 +104,11 @@ function neuroAddon(neuro: "standard" | "adhd" | "autism" | "dyslexia"): string 
     case "standard":
       return "";
     case "adhd":
-      return `\n\nADHD MODE: Keep responses tight and energetic. Open with the single most interesting fact. Use short bursts. Offer a quick "next step" prompt at the end so momentum is never lost.`;
+      return `\n\nADHD MODE: Open with the single most interesting fact about the topic to hook attention. Keep paragraphs short (2-3 sentences max). Use a fast, energetic tone. End with one sharp, punchy check question.`;
     case "autism":
       return `\n\nSENSORY-SAFE MODE: Avoid metaphors, idioms, sarcasm, and ambiguous language. Be literal. Use predictable structure (Definition → Example → Summary). When introducing a new section, name it explicitly. Never use exclamation marks.`;
     case "dyslexia":
-      return `\n\nDECODING MODE: Use short sentences and common words. Break long words by syllables when first introduced (e.g. "pho-to-syn-the-sis"). Avoid dense paragraphs.`;
+      return `\n\nDECODING MODE: Use short sentences and common words. Break long words by syllables when first introduced (e.g. "pho-to-syn-the-sis"). Avoid dense paragraphs — leave a blank line between each paragraph.`;
   }
 }
 
@@ -147,7 +163,6 @@ function sanitizeReply(raw: string, mermaidExtracted: boolean): string {
   text = text.replace(/^\s*>\s?/gm, "");
 
   // ---- Strip permission-seeking trailing offers ----
-  // Remove sentences that start with classic permission-seeking patterns.
   const permissionRe = new RegExp(
     [
       "(?:^|(?<=[\\.!?]\\s))",
@@ -208,7 +223,6 @@ router.post("/chat", async (req, res, next) => {
         if (a.mimeType.startsWith("image/")) {
           parts.push({ type: "image_url", image_url: { url: a.dataUrl } });
         } else {
-          // For non-image files, decode the base64 payload as text and inline it.
           try {
             const b64 = a.dataUrl.split(",")[1] ?? "";
             const decoded = Buffer.from(b64, "base64").toString("utf8");
@@ -301,6 +315,90 @@ router.post("/session-map", async (req, res, next) => {
       steps: Array.isArray(parsed.steps) ? parsed.steps : [],
     });
     res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * TTS — converts AI reply text to humanized speech via OpenAI TTS.
+ * Returns audio/mpeg binary. The client plays it via Web Audio / <audio>.
+ */
+router.post("/tts", async (req, res, next) => {
+  try {
+    const { text } = req.body as { text: string };
+    if (!text || typeof text !== "string") {
+      res.status(400).json({ error: "text is required" });
+      return;
+    }
+
+    const mp3 = await openai.audio.speech.create({
+      model: "tts-1",
+      voice: "nova",
+      input: text.slice(0, 4096),
+    });
+
+    const buffer = Buffer.from(await mp3.arrayBuffer());
+    res.set("Content-Type", "audio/mpeg");
+    res.set("Cache-Control", "no-store");
+    res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Kinesthetic session feedback — analyses all user messages in a session
+ * and returns structured "What You Nailed / Areas for Growth / Study Suggestions".
+ */
+router.post("/feedback", async (req, res, next) => {
+  try {
+    const { history, topic } = req.body as {
+      history: Array<{ role: string; content: string }>;
+      topic?: string;
+    };
+
+    const userTeachingLog = (history ?? [])
+      .filter((m) => m.role === "user")
+      .map((m, i) => `[Attempt ${i + 1}]: ${m.content}`)
+      .join("\n\n");
+
+    if (!userTeachingLog.trim()) {
+      res.json({ nailed: "No session data yet.", growth: "", suggestions: "" });
+      return;
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5.4",
+      max_completion_tokens: 1024,
+      messages: [
+        {
+          role: "system",
+          content: `You are a Kinesthetic Learning evaluator for FlexiLearn. The learner has been using the Feynman Technique — teaching a concept to an AI student. Analyse their teaching attempts and produce structured, encouraging feedback. Return ONLY valid JSON matching exactly this schema:
+{
+  "nailed": string,
+  "growth": string,
+  "suggestions": string
+}
+- "nailed": 2-3 warm sentences highlighting what the student explained well, correctly, and clearly. Be specific, not generic.
+- "growth": 2-3 constructive sentences identifying concepts that were incomplete, slightly off, or missing. Be kind and precise.
+- "suggestions": 3 numbered, actionable study steps to strengthen the weak areas. Write as a numbered list inside the string (e.g. "1. Review... 2. Try... 3. Test...").
+Do not use markdown formatting inside the strings. Plain text only.`,
+        },
+        {
+          role: "user",
+          content: `Topic: ${topic || "the session topic"}\n\nStudent teaching log:\n\n${userTeachingLog}`,
+        },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const raw = JSON.parse(completion.choices[0]?.message?.content ?? "{}");
+    res.json({
+      nailed: raw.nailed ?? "",
+      growth: raw.growth ?? "",
+      suggestions: raw.suggestions ?? "",
+    });
   } catch (err) {
     next(err);
   }
