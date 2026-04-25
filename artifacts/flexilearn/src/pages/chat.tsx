@@ -325,7 +325,7 @@ export default function Chat() {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              className="gap-2 rounded-xl glass px-3 h-10"
+              className="gap-2 rounded-xl glass-on-cream px-3 h-10 text-white hover:text-white hover:opacity-85"
               onClick={handleBack}
               title="Back to home"
             >
@@ -366,8 +366,8 @@ export default function Chat() {
             </MotionDiv>
 
             <div>
-              <h1 className="font-semibold text-foreground leading-tight">{agentDisplay.name}</h1>
-              <p className="text-xs text-muted-foreground capitalize flex items-center gap-2">
+              <h1 className="font-semibold leading-tight" style={{ color: "#112233" }}>{agentDisplay.name}</h1>
+              <p className="text-xs capitalize flex items-center gap-2" style={{ color: "#7A8B99" }}>
                 {learningStyle} • {neuroProfile}
               </p>
             </div>
@@ -375,15 +375,15 @@ export default function Chat() {
 
           <div className="flex items-center gap-3">
             {isKinesthetic && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 glass rounded-full text-xs font-medium">
-                <GraduationCap className="w-3.5 h-3.5 text-primary" />
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 glass-on-cream rounded-full text-xs font-medium text-white">
+                <GraduationCap className="w-3.5 h-3.5 text-[#75C9A8]" />
                 You are the teacher
               </div>
             )}
             <FocusTimer />
             {neuroProfile === "adhd" && (
-              <div className="flex items-center gap-2 px-3 py-1.5 glass rounded-full font-medium relative">
-                <Medal className="w-4 h-4 text-yellow-400" />
+              <div className="flex items-center gap-2 px-3 py-1.5 glass-on-cream rounded-full font-medium relative text-white">
+                <Medal className="w-4 h-4 text-yellow-300" />
                 <span>{points} pts</span>
                 {showCelebration && (
                   <MotionDiv

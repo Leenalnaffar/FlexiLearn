@@ -279,6 +279,16 @@
   color: hsl(var(--primary-foreground));
 }
 
+/* ============== Pills / widgets floating on a cream surface ============== */
+/* Use instead of .glass when the parent element is cream (#F3F0E6) */
+.glass-on-cream {
+  background: hsl(210 44% 21%);
+  border: 1px solid hsl(210 30% 30% / 0.55);
+  box-shadow: 0 3px 12px hsl(210 44% 10% / 0.28);
+  color: white;
+}
+.glass-on-cream svg { color: inherit; }
+
 /* ============== Skill-tree node glow ============== */
 .node-glow-active {
   box-shadow:
