@@ -93,28 +93,92 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
       });
       if (!res.ok) throw new Error(`TTS request failed: ${res.status}`);
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
+      // Use MediaSource for streaming playback so audio begins on first chunk
+      const supportsStreaming =
+        res.body &&
+        typeof window.MediaSource !== "undefined" &&
+        MediaSource.isTypeSupported("audio/mpeg");
 
-      // Attach event handlers BEFORE play() so they fire even for fast tracks
-      const cleanup = () => {
-        setIsPlaying(false);
-        URL.revokeObjectURL(url);
-        audioRef.current = null;
-      };
-      audio.onended = cleanup;
-      audio.onerror = cleanup;
+      if (supportsStreaming) {
+        const mediaSource = new MediaSource();
+        const audioUrl = URL.createObjectURL(mediaSource);
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
 
-      // Stop the loading spinner — fetch is done, audio is ready
-      setIsLoadingTTS(false);
+        const cleanup = () => {
+          setIsPlaying(false);
+          URL.revokeObjectURL(audioUrl);
+          audioRef.current = null;
+        };
+        audio.onended = cleanup;
+        audio.onerror = cleanup;
 
-      // Await play() so any browser autoplay-policy rejection is caught below
-      await audio.play();
-      setIsPlaying(true);
+        // Begin playing as soon as the browser has buffered enough to start
+        audio.addEventListener(
+          "canplay",
+          () => {
+            setIsLoadingTTS(false);
+            audio.play().then(() => setIsPlaying(true)).catch(cleanup);
+          },
+          { once: true },
+        );
+
+        mediaSource.addEventListener("sourceopen", () => {
+          const sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
+          const reader = res.body!.getReader();
+          const queue: Uint8Array[] = [];
+          let appending = false;
+          let streamDone = false;
+
+          const tryFlush = () => {
+            if (appending || queue.length === 0) {
+              if (streamDone && !appending && queue.length === 0) {
+                try { mediaSource.endOfStream(); } catch { /* already closed */ }
+              }
+              return;
+            }
+            appending = true;
+            sourceBuffer.appendBuffer(queue.shift()!);
+          };
+
+          sourceBuffer.addEventListener("updateend", () => {
+            appending = false;
+            tryFlush();
+          });
+
+          const pump = (): void => {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                streamDone = true;
+                tryFlush();
+                return;
+              }
+              queue.push(value);
+              tryFlush();
+              pump();
+            }).catch(cleanup);
+          };
+          pump();
+        });
+      } else {
+        // Fallback: buffer full response then play
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioRef.current = audio;
+
+        const cleanup = () => {
+          setIsPlaying(false);
+          URL.revokeObjectURL(url);
+          audioRef.current = null;
+        };
+        audio.onended = cleanup;
+        audio.onerror = cleanup;
+        setIsLoadingTTS(false);
+        await audio.play();
+        setIsPlaying(true);
+      }
     } catch {
-      // play() rejection or fetch failure — reset all state cleanly
       setIsPlaying(false);
       setIsLoadingTTS(false);
       if (audioRef.current) {

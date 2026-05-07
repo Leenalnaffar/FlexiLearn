@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { Readable } from "stream";
 import {
   SendChatMessageBody,
   SendChatMessageResponse,
@@ -343,22 +344,23 @@ router.post("/tts", async (req, res, next) => {
 
     const mp3 = await openai.audio.speech.create({
       model: "tts-1",
-      voice: "nova",
+      voice: "shimmer",
       input: text.slice(0, 4096),
     });
 
-    const buffer = Buffer.from(await mp3.arrayBuffer());
     res.set("Content-Type", "audio/mpeg");
     res.set("Cache-Control", "no-store");
-    res.send(buffer);
+    res.set("Transfer-Encoding", "chunked");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Readable.fromWeb(mp3.body as any).pipe(res);
   } catch (err) {
     next(err);
   }
 });
 
 /**
- * Kinesthetic session feedback — analyses all user messages in a session
- * and returns structured "What You Nailed / Areas for Growth / Study Suggestions".
+ * Session feedback — analyses the full conversation history for any learning
+ * mode and returns structured "Concepts Mastered / Areas for Growth / Next Steps".
  */
 router.post("/feedback", async (req, res, next) => {
   try {
@@ -367,12 +369,11 @@ router.post("/feedback", async (req, res, next) => {
       topic?: string;
     };
 
-    const userTeachingLog = (history ?? [])
-      .filter((m) => m.role === "user")
-      .map((m, i) => `[Attempt ${i + 1}]: ${m.content}`)
+    const fullConversation = (history ?? [])
+      .map((m, i) => `[${m.role === "user" ? "Student" : "AI Tutor"} — turn ${i + 1}]: ${m.content}`)
       .join("\n\n");
 
-    if (!userTeachingLog.trim()) {
+    if (!fullConversation.trim()) {
       res.json({ nailed: "No session data yet.", growth: "", suggestions: "" });
       return;
     }
@@ -383,20 +384,20 @@ router.post("/feedback", async (req, res, next) => {
       messages: [
         {
           role: "system",
-          content: `You are a Kinesthetic Learning evaluator for FlexiLearn. The learner has been using the Feynman Technique — teaching a concept to an AI student. Analyse their teaching attempts and produce structured, encouraging feedback. Return ONLY valid JSON matching exactly this schema:
+          content: `You are a learning analyst for FlexiLearn. You receive a full tutoring session transcript and produce structured, encouraging feedback for the student. Return ONLY valid JSON matching exactly this schema:
 {
   "nailed": string,
   "growth": string,
   "suggestions": string
 }
-- "nailed": 2-3 warm sentences highlighting what the student explained well, correctly, and clearly. Be specific, not generic.
-- "growth": 2-3 constructive sentences identifying concepts that were incomplete, slightly off, or missing. Be kind and precise.
-- "suggestions": 3 numbered, actionable study steps to strengthen the weak areas. Write as a numbered list inside the string (e.g. "1. Review... 2. Try... 3. Test...").
+- "nailed": 2-3 warm sentences naming the specific concepts and ideas the student demonstrated clear understanding of, based on the questions they asked and how they engaged. Be specific and encouraging.
+- "growth": 2-3 constructive sentences identifying topics where the student showed confusion, asked repeatedly, or where gaps appeared in their understanding. Be kind and precise.
+- "suggestions": A tailored 3-step study plan addressing the identified gaps. Write as a numbered list inside the string (e.g. "1. Review... 2. Practice... 3. Test yourself by..."). Make each step concrete and actionable.
 Do not use markdown formatting inside the strings. Plain text only.`,
         },
         {
           role: "user",
-          content: `Topic: ${topic || "the session topic"}\n\nStudent teaching log:\n\n${userTeachingLog}`,
+          content: `Topic: ${topic || "the session topic"}\n\nFull session transcript:\n\n${fullConversation}`,
         },
       ],
       response_format: { type: "json_object" },

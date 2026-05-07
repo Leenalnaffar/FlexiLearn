@@ -542,7 +542,7 @@ export default function Chat() {
               </Button>
             </div>
           </div>
-          {isKinesthetic && history.filter((m) => m.role === "user").length > 0 && (
+          {history.filter((m) => m.role === "user").length > 0 && (
             <div className="max-w-3xl mx-auto mt-3 flex justify-center">
               <Button
                 onClick={() => feedbackMutation.mutate()}
@@ -563,7 +563,7 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* Kinesthetic Session Feedback Dialog */}
+      {/* Session Feedback Dialog */}
       <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
         <DialogContent className="max-w-lg rounded-3xl" style={{ background: "#F3F0E6", color: "#112233" }}>
           <DialogHeader>
@@ -576,7 +576,7 @@ export default function Chat() {
               <div className="rounded-2xl p-4" style={{ background: "hsl(158 44% 62% / 0.15)", borderLeft: "4px solid #75C9A8" }}>
                 <div className="flex items-center gap-2 mb-2 font-semibold" style={{ color: "#112233" }}>
                   <Trophy className="w-4 h-4" style={{ color: "#75C9A8" }} />
-                  What You Nailed
+                  Concepts Mastered
                 </div>
                 <p className="text-sm leading-relaxed" style={{ color: "#112233" }}>{feedbackData.nailed}</p>
               </div>
@@ -590,7 +590,7 @@ export default function Chat() {
               <div className="rounded-2xl p-4" style={{ background: "hsl(210 44% 21% / 0.08)", borderLeft: "4px solid #4A6274" }}>
                 <div className="flex items-center gap-2 mb-2 font-semibold" style={{ color: "#112233" }}>
                   <BookOpenCheck className="w-4 h-4" style={{ color: "#4A6274" }} />
-                  Study Suggestions
+                  Next Steps
                 </div>
                 <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#112233" }}>{feedbackData.suggestions}</p>
               </div>
