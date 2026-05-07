@@ -18,28 +18,16 @@ function renderContent(text: string): React.ReactNode[] {
     const mdLink = seg.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
     if (mdLink) {
       return (
-        <a
-          key={i}
-          href={mdLink[2]}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="underline underline-offset-2 font-medium"
-          style={{ color: "#E56B6F" }}
-        >
+        <a key={i} href={mdLink[2]} target="_blank" rel="noreferrer noopener"
+          className="underline underline-offset-2 font-medium" style={{ color: "#E56B6F" }}>
           {mdLink[1]}
         </a>
       );
     }
     if (/^https?:\/\//.test(seg)) {
       return (
-        <a
-          key={i}
-          href={seg}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="underline underline-offset-2 font-medium break-all"
-          style={{ color: "#E56B6F" }}
-        >
+        <a key={i} href={seg} target="_blank" rel="noreferrer noopener"
+          className="underline underline-offset-2 font-medium break-all" style={{ color: "#E56B6F" }}>
           {seg}
         </a>
       );
@@ -48,41 +36,57 @@ function renderContent(text: string): React.ReactNode[] {
   });
 }
 
+function prepareTextForSpeech(raw: string): string {
+  let t = raw;
+  t = t.replace(/```mermaid[\s\S]*?```/gi, "");
+  t = t.replace(/```[\s\S]*?```/g, "");
+  t = t.replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, "$1");
+  t = t.replace(/https?:\/\/\S+/g, "");
+  t = t.replace(/^Listen\s*&\s*watch\s*$/gim, "Here are some resources to explore.");
+  t = t.replace(/^Read\s*further\s*$/gim, "For further reading, consider these sources.");
+  t = t.replace(/^-\s+/gm, "");
+  t = t.replace(/^#{1,6}\s+/gm, "");
+  t = t.replace(/\n{3,}/g, "\n\n").trim();
+  return t;
+}
+
+function pickVoice(): SpeechSynthesisVoice | null {
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = [
+    "Google UK English Female",
+    "Google US English",
+    "Microsoft Zira - English (United States)",
+    "Samantha",
+    "Karen",
+    "Moira",
+    "Fiona",
+    "Victoria",
+  ];
+  for (const name of preferred) {
+    const match = voices.find((v) => v.name === name && v.lang.startsWith("en"));
+    if (match) return match;
+  }
+  return voices.find((v) => v.lang.startsWith("en") && !v.name.toLowerCase().includes("male")) ??
+    voices.find((v) => v.lang.startsWith("en")) ??
+    null;
+}
+
 function WaveformBars({ playing }: { playing: boolean }) {
   return (
-    <span
-      aria-hidden
-      style={{
-        display: "inline-flex",
-        alignItems: "flex-end",
-        gap: "2px",
-        height: "14px",
-        marginRight: "4px",
-      }}
-    >
+    <span aria-hidden style={{ display: "inline-flex", alignItems: "flex-end", gap: "2px", height: "14px", marginRight: "4px" }}>
       {[0, 1, 2, 3].map((i) => (
-        <span
-          key={i}
-          style={{
-            display: "block",
-            width: "3px",
-            borderRadius: "2px",
-            background: "#75C9A8",
-            height: playing ? undefined : "4px",
-            animation: playing
-              ? `tts-bar ${0.7 + i * 0.15}s ease-in-out ${i * 0.1}s infinite alternate`
-              : "none",
-            minHeight: "3px",
-            maxHeight: "13px",
-          }}
-        />
+        <span key={i} style={{
+          display: "block",
+          width: "3px",
+          borderRadius: "2px",
+          background: "#75C9A8",
+          height: playing ? undefined : "4px",
+          animation: playing ? `tts-bar ${0.7 + i * 0.15}s ease-in-out ${i * 0.1}s infinite alternate` : "none",
+          minHeight: "3px",
+          maxHeight: "13px",
+        }} />
       ))}
-      <style>{`
-        @keyframes tts-bar {
-          from { height: 3px; }
-          to   { height: 13px; }
-        }
-      `}</style>
+      <style>{`@keyframes tts-bar { from { height: 3px; } to { height: 13px; } }`}</style>
     </span>
   );
 }
@@ -90,126 +94,68 @@ function WaveformBars({ playing }: { playing: boolean }) {
 export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   const { learningStyle, neuroProfile } = usePreferences();
   const isUser = message.role === "user";
-
   const isDyslexia = neuroProfile === "dyslexia";
   const isVisual = learningStyle === "visual";
   const isReading = learningStyle === "reading";
-  const isAuditory = learningStyle === "auditory";
 
   const mermaidRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoadingTTS, setIsLoadingTTS] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const uttRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     if (isVisual && mermaidCode && mermaidRef.current) {
       mermaid.initialize({ startOnLoad: false, theme: "neutral" });
       mermaid
         .render(`mermaid-${Math.random().toString(36).substring(2)}`, mermaidCode)
-        .then((result) => {
-          if (mermaidRef.current) {
-            mermaidRef.current.innerHTML = result.svg;
-          }
-        })
+        .then((result) => { if (mermaidRef.current) mermaidRef.current.innerHTML = result.svg; })
         .catch(console.error);
     }
   }, [mermaidCode, isVisual]);
 
-  const handlePlayTTS = async () => {
-    if (isPlaying && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+  useEffect(() => {
+    return () => {
+      if (isPlaying) window.speechSynthesis.cancel();
+    };
+  }, [isPlaying]);
+
+  const handleSpeak = () => {
+    if (!("speechSynthesis" in window)) return;
+
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      uttRef.current = null;
       setIsPlaying(false);
       return;
     }
 
-    setIsLoadingTTS(true);
-    try {
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: message.content, neuroProfile }),
-      });
-      if (!res.ok) throw new Error(`TTS request failed: ${res.status}`);
+    window.speechSynthesis.cancel();
 
-      const supportsStreaming =
-        res.body &&
-        typeof window.MediaSource !== "undefined" &&
-        MediaSource.isTypeSupported("audio/mpeg");
+    const text = prepareTextForSpeech(message.content);
+    if (!text) return;
 
-      if (supportsStreaming) {
-        const mediaSource = new MediaSource();
-        const audioUrl = URL.createObjectURL(mediaSource);
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = "en-US";
+    utt.rate = 0.95;
+    utt.pitch = 1.05;
 
-        const cleanup = () => {
-          setIsPlaying(false);
-          URL.revokeObjectURL(audioUrl);
-          audioRef.current = null;
-        };
-        audio.onended = cleanup;
-        audio.onerror = cleanup;
+    const trySetVoice = () => {
+      const voice = pickVoice();
+      if (voice) utt.voice = voice;
+    };
 
-        audio.addEventListener(
-          "canplay",
-          () => {
-            setIsLoadingTTS(false);
-            audio.play().then(() => setIsPlaying(true)).catch(cleanup);
-          },
-          { once: true },
-        );
-
-        mediaSource.addEventListener("sourceopen", () => {
-          const sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
-          const reader = res.body!.getReader();
-          const queue: Uint8Array[] = [];
-          let appending = false;
-          let streamDone = false;
-
-          const tryFlush = () => {
-            if (appending || queue.length === 0) {
-              if (streamDone && !appending && queue.length === 0) {
-                try { mediaSource.endOfStream(); } catch { /* already closed */ }
-              }
-              return;
-            }
-            appending = true;
-            sourceBuffer.appendBuffer(queue.shift()!);
-          };
-
-          sourceBuffer.addEventListener("updateend", () => {
-            appending = false;
-            tryFlush();
-          });
-
-          const pump = (): void => {
-            reader.read().then(({ done, value }) => {
-              if (done) { streamDone = true; tryFlush(); return; }
-              queue.push(value);
-              tryFlush();
-              pump();
-            }).catch(cleanup);
-          };
-          pump();
-        });
-      } else {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audioRef.current = audio;
-        const cleanup = () => { setIsPlaying(false); URL.revokeObjectURL(url); audioRef.current = null; };
-        audio.onended = cleanup;
-        audio.onerror = cleanup;
-        setIsLoadingTTS(false);
-        await audio.play();
-        setIsPlaying(true);
-      }
-    } catch {
-      setIsPlaying(false);
-      setIsLoadingTTS(false);
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (window.speechSynthesis.getVoices().length > 0) {
+      trySetVoice();
+    } else {
+      window.speechSynthesis.addEventListener("voiceschanged", trySetVoice, { once: true });
     }
+
+    utt.onstart = () => setIsPlaying(true);
+    utt.onend = () => { setIsPlaying(false); uttRef.current = null; };
+    utt.onerror = () => { setIsPlaying(false); uttRef.current = null; };
+
+    uttRef.current = utt;
+    window.speechSynthesis.speak(utt);
+    setIsPlaying(true);
   };
 
   const handleDownloadMd = () => {
@@ -223,6 +169,7 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   };
 
   const isAutism = neuroProfile === "autism";
+  const hasSpeech = typeof window !== "undefined" && "speechSynthesis" in window;
 
   return (
     <MotionDiv
@@ -231,31 +178,23 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
       transition={isAutism ? { duration: 0 } : undefined}
       className={cn("flex w-full mb-6", isUser ? "justify-end" : "justify-start")}
     >
-      <div
-        className={cn(
-          "message-bubble max-w-[88%] sm:max-w-[78%] rounded-3xl px-6 py-4 relative group",
-          isUser ? "rounded-tr-sm glass-bubble-user" : "rounded-tl-sm glass-bubble-bot",
-          isDyslexia && !isUser && "dyslexia-mode",
-          isReading && !isUser && "font-serif text-[1.05rem] leading-relaxed",
-        )}
-      >
+      <div className={cn(
+        "message-bubble max-w-[88%] sm:max-w-[78%] rounded-3xl px-6 py-4 relative group",
+        isUser ? "rounded-tr-sm glass-bubble-user" : "rounded-tl-sm glass-bubble-bot",
+        isDyslexia && !isUser && "dyslexia-mode",
+        isReading && !isUser && "font-serif text-[1.05rem] leading-relaxed",
+      )}>
         {isUser && message.attachments && message.attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {message.attachments.map((a, i) => {
               const isImg = a.mimeType.startsWith("image/");
               return isImg ? (
                 <a key={i} href={a.dataUrl} target="_blank" rel="noreferrer" className="block">
-                  <img
-                    src={a.dataUrl}
-                    alt={a.name}
-                    className="max-h-48 max-w-full rounded-xl border border-border object-cover"
-                  />
+                  <img src={a.dataUrl} alt={a.name}
+                    className="max-h-48 max-w-full rounded-xl border border-border object-cover" />
                 </a>
               ) : (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted border border-border text-xs"
-                >
+                <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted border border-border text-xs">
                   <FileText className="w-4 h-4 shrink-0" />
                   <span className="truncate max-w-[200px]">{a.name}</span>
                 </div>
@@ -272,17 +211,11 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           </div>
         )}
 
-        {!isUser && (
-          <div
-            className={cn(
-              "mt-3 flex items-center gap-2",
-              isReading ? "justify-between" : "justify-start",
-            )}
-          >
+        {!isUser && hasSpeech && (
+          <div className={cn("mt-3 flex items-center gap-2", isReading ? "justify-between" : "justify-start")}>
             <button
               type="button"
-              onClick={handlePlayTTS}
-              disabled={isLoadingTTS}
+              onClick={handleSpeak}
               aria-label={isPlaying ? "Stop audio" : "Listen to this response"}
               title={isPlaying ? "Stop" : "Listen"}
               style={{
@@ -294,39 +227,16 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
                 letterSpacing: "0.01em",
                 padding: "4px 10px 4px 8px",
                 borderRadius: "999px",
-                border: isPlaying
-                  ? "1px solid rgba(117,201,168,0.45)"
-                  : "1px solid rgba(122,139,153,0.25)",
-                background: isPlaying
-                  ? "rgba(117,201,168,0.12)"
-                  : "rgba(122,139,153,0.08)",
+                border: isPlaying ? "1px solid rgba(117,201,168,0.45)" : "1px solid rgba(122,139,153,0.25)",
+                background: isPlaying ? "rgba(117,201,168,0.12)" : "rgba(122,139,153,0.08)",
                 color: isPlaying ? "#75C9A8" : "#7A8B99",
-                cursor: isLoadingTTS ? "default" : "pointer",
+                cursor: "pointer",
                 transition: "all 0.2s ease",
-                opacity: isLoadingTTS ? 0.6 : 1,
                 userSelect: "none",
               }}
             >
-              {isPlaying ? (
-                <WaveformBars playing />
-              ) : isLoadingTTS ? (
-                <span
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    border: "2px solid #7A8B99",
-                    borderTopColor: "transparent",
-                    display: "inline-block",
-                    animation: "spin 0.7s linear infinite",
-                  }}
-                />
-              ) : (
-                <WaveformBars playing={false} />
-              )}
-              <span>
-                {isPlaying ? "Stop" : isLoadingTTS ? "Loading…" : (isAuditory || isDyslexia) ? "Listen" : "Listen"}
-              </span>
+              <WaveformBars playing={isPlaying} />
+              <span>{isPlaying ? "Stop" : "Listen"}</span>
             </button>
 
             {isReading && (
