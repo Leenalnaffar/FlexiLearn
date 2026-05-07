@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 import { Button } from "@/components/ui/button";
-import { Download, Volume2, VolumeX, FileText } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { usePreferences } from "@/hooks/use-preferences";
 import { MotionDiv } from "@/components/motion-wrapper";
 import { ChatMessage as ApiChatMessage } from "@workspace/api-client-react";
@@ -48,6 +48,45 @@ function renderContent(text: string): React.ReactNode[] {
   });
 }
 
+function WaveformBars({ playing }: { playing: boolean }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: "inline-flex",
+        alignItems: "flex-end",
+        gap: "2px",
+        height: "14px",
+        marginRight: "4px",
+      }}
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <span
+          key={i}
+          style={{
+            display: "block",
+            width: "3px",
+            borderRadius: "2px",
+            background: "#75C9A8",
+            height: playing ? undefined : "4px",
+            animation: playing
+              ? `tts-bar ${0.7 + i * 0.15}s ease-in-out ${i * 0.1}s infinite alternate`
+              : "none",
+            minHeight: "3px",
+            maxHeight: "13px",
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes tts-bar {
+          from { height: 3px; }
+          to   { height: 13px; }
+        }
+      `}</style>
+    </span>
+  );
+}
+
 export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   const { learningStyle, neuroProfile } = usePreferences();
   const isUser = message.role === "user";
@@ -55,6 +94,7 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   const isDyslexia = neuroProfile === "dyslexia";
   const isVisual = learningStyle === "visual";
   const isReading = learningStyle === "reading";
+  const isAuditory = learningStyle === "auditory";
 
   const mermaidRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -76,7 +116,6 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
   }, [mermaidCode, isVisual]);
 
   const handlePlayTTS = async () => {
-    // Stop current playback if already playing
     if (isPlaying && audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -89,11 +128,10 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: message.content }),
+        body: JSON.stringify({ text: message.content, neuroProfile }),
       });
       if (!res.ok) throw new Error(`TTS request failed: ${res.status}`);
 
-      // Use MediaSource for streaming playback so audio begins on first chunk
       const supportsStreaming =
         res.body &&
         typeof window.MediaSource !== "undefined" &&
@@ -113,7 +151,6 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
         audio.onended = cleanup;
         audio.onerror = cleanup;
 
-        // Begin playing as soon as the browser has buffered enough to start
         audio.addEventListener(
           "canplay",
           () => {
@@ -148,11 +185,7 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
 
           const pump = (): void => {
             reader.read().then(({ done, value }) => {
-              if (done) {
-                streamDone = true;
-                tryFlush();
-                return;
-              }
+              if (done) { streamDone = true; tryFlush(); return; }
               queue.push(value);
               tryFlush();
               pump();
@@ -161,17 +194,11 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           pump();
         });
       } else {
-        // Fallback: buffer full response then play
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         audioRef.current = audio;
-
-        const cleanup = () => {
-          setIsPlaying(false);
-          URL.revokeObjectURL(url);
-          audioRef.current = null;
-        };
+        const cleanup = () => { setIsPlaying(false); URL.revokeObjectURL(url); audioRef.current = null; };
         audio.onended = cleanup;
         audio.onerror = cleanup;
         setIsLoadingTTS(false);
@@ -181,10 +208,7 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
     } catch {
       setIsPlaying(false);
       setIsLoadingTTS(false);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     }
   };
 
@@ -215,31 +239,6 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           isReading && !isUser && "font-serif text-[1.05rem] leading-relaxed",
         )}
       >
-        {!isUser && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "absolute -right-12 top-0 h-9 w-9 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
-              isPlaying && "opacity-100",
-            )}
-            style={{
-              background: isPlaying ? "hsl(158 44% 62% / 0.15)" : undefined,
-              color: isPlaying ? "#75C9A8" : "#7A8B99",
-            }}
-            onClick={handlePlayTTS}
-            disabled={isLoadingTTS}
-            aria-label={isPlaying ? "Stop playback" : "Listen to this response"}
-            title={isPlaying ? "Stop" : "Listen"}
-          >
-            {isPlaying ? (
-              <VolumeX className="w-4 h-4 animate-pulse" />
-            ) : (
-              <Volume2 className={cn("w-4 h-4", isLoadingTTS && "animate-pulse opacity-50")} />
-            )}
-          </Button>
-        )}
-
         {isUser && message.attachments && message.attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {message.attachments.map((a, i) => {
@@ -273,11 +272,68 @@ export function ChatMessage({ message, mermaidCode }: ChatMessageProps) {
           </div>
         )}
 
-        {!isUser && isReading && (
-          <div className="mt-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button variant="outline" size="sm" onClick={handleDownloadMd} className="gap-2 rounded-lg">
-              <Download className="w-4 h-4" /> Download Note
-            </Button>
+        {!isUser && (
+          <div
+            className={cn(
+              "mt-3 flex items-center gap-2",
+              isReading ? "justify-between" : "justify-start",
+            )}
+          >
+            <button
+              type="button"
+              onClick={handlePlayTTS}
+              disabled={isLoadingTTS}
+              aria-label={isPlaying ? "Stop audio" : "Listen to this response"}
+              title={isPlaying ? "Stop" : "Listen"}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "0.72rem",
+                fontWeight: 500,
+                letterSpacing: "0.01em",
+                padding: "4px 10px 4px 8px",
+                borderRadius: "999px",
+                border: isPlaying
+                  ? "1px solid rgba(117,201,168,0.45)"
+                  : "1px solid rgba(122,139,153,0.25)",
+                background: isPlaying
+                  ? "rgba(117,201,168,0.12)"
+                  : "rgba(122,139,153,0.08)",
+                color: isPlaying ? "#75C9A8" : "#7A8B99",
+                cursor: isLoadingTTS ? "default" : "pointer",
+                transition: "all 0.2s ease",
+                opacity: isLoadingTTS ? 0.6 : 1,
+                userSelect: "none",
+              }}
+            >
+              {isPlaying ? (
+                <WaveformBars playing />
+              ) : isLoadingTTS ? (
+                <span
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    border: "2px solid #7A8B99",
+                    borderTopColor: "transparent",
+                    display: "inline-block",
+                    animation: "spin 0.7s linear infinite",
+                  }}
+                />
+              ) : (
+                <WaveformBars playing={false} />
+              )}
+              <span>
+                {isPlaying ? "Stop" : isLoadingTTS ? "Loading…" : (isAuditory || isDyslexia) ? "Listen" : "Listen"}
+              </span>
+            </button>
+
+            {isReading && (
+              <Button variant="outline" size="sm" onClick={handleDownloadMd} className="gap-2 rounded-lg">
+                <Download className="w-4 h-4" /> Download Note
+              </Button>
+            )}
           </div>
         )}
       </div>

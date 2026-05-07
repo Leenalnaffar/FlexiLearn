@@ -331,21 +331,74 @@ router.post("/session-map", async (req, res, next) => {
 });
 
 /**
- * TTS — converts AI reply text to humanized speech via OpenAI TTS.
- * Returns audio/mpeg binary. The client plays it via Web Audio / <audio>.
+ * Clean raw AI message text so it reads naturally when spoken aloud.
+ * Strips Mermaid diagrams, bare URLs, markdown links (keeping label only),
+ * section banners that are link-lists, bullet dashes, and heading markers.
+ */
+function prepareTextForSpeech(raw: string): string {
+  let t = raw;
+
+  // Remove mermaid blocks entirely — diagrams can't be spoken
+  t = t.replace(/```mermaid[\s\S]*?```/gi, "");
+
+  // Remove any other fenced code blocks
+  t = t.replace(/```[\s\S]*?```/g, "");
+
+  // Convert markdown links [label](url) → just the label
+  t = t.replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, "$1");
+
+  // Remove bare URLs entirely
+  t = t.replace(/https?:\/\/\S+/g, "");
+
+  // Replace "Listen & watch" / "Read further" banners with spoken transitions
+  t = t.replace(/^Listen\s*&\s*watch\s*$/gim, "Here are some resources to explore.");
+  t = t.replace(/^Read\s*further\s*$/gim, "For further reading, consider these sources.");
+
+  // Remove bullet dashes so prose flows naturally
+  t = t.replace(/^-\s+/gm, "");
+
+  // Remove markdown heading markers
+  t = t.replace(/^#{1,6}\s+/gm, "");
+
+  // Collapse multiple blank lines and trim
+  t = t.replace(/\n{3,}/g, "\n\n").trim();
+
+  return t;
+}
+
+/**
+ * Select the most natural-sounding OpenAI voice for the given neuro-profile.
+ * nova  — warm, expressive, engaging (ADHD, auditory learners)
+ * shimmer — gentle, measured, clear (autism, dyslexia, default)
+ */
+function voiceFor(neuroProfile?: string): "nova" | "shimmer" {
+  if (neuroProfile === "adhd") return "nova";
+  return "shimmer";
+}
+
+/**
+ * TTS — converts AI reply text to humanized speech via OpenAI TTS HD.
+ * Text is cleaned for natural speech before synthesis.
+ * Audio streams directly to the client so playback begins immediately.
  */
 router.post("/tts", async (req, res, next) => {
   try {
-    const { text } = req.body as { text: string };
+    const { text, neuroProfile } = req.body as { text: string; neuroProfile?: string };
     if (!text || typeof text !== "string") {
       res.status(400).json({ error: "text is required" });
       return;
     }
 
+    const cleaned = prepareTextForSpeech(text);
+    if (!cleaned) {
+      res.status(400).json({ error: "no speakable content" });
+      return;
+    }
+
     const mp3 = await openai.audio.speech.create({
-      model: "tts-1",
-      voice: "shimmer",
-      input: text.slice(0, 4096),
+      model: "tts-1-hd",
+      voice: voiceFor(neuroProfile),
+      input: cleaned.slice(0, 4096),
     });
 
     res.set("Content-Type", "audio/mpeg");
